@@ -27,3 +27,10 @@ jobs:
             New Release
           draft: false
           prerelease: false
+      - name: WordPress Plugin Deploy
+        uses: 10up/action-wordpress-plugin-deploy@1.4.0
+        env:
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SLUG: post-type-spotlight
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
