@@ -21,11 +21,9 @@ PATHS:
   dist: ""
   # Paths to static assets that aren't images, CSS, or JavaScript
   assets:
-    - "assets/fonts/*"
     - "!assets/{img,js,scss,css}/**/*"
   # Paths to JavaScript entry points for webpack to bundle modules
   entries:
-    - "assets/js/post-type-spotlight.js"
-    - "assets/js/post-type-spotlight.js"
+    - "assets/js/admin-post-type-spotlight.js"
 
 LOCAL_PATH: "http://posttypespotlight.test"

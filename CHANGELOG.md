@@ -1,46 +1,40 @@
 # Changelog #
 
-## 1.3.0 ##
-* Fixed minor sanitization of within the admin
-* Fixed minor WPCS and PHPCS notices
-* Updated plugin branding for .org
-* Updated readme to link to the Classic Editor Plugin
-* Updated deployment process to make releases easier
+## 2.2.0 ##
+* Updated the build process
+* Updated PHPCS and WPCS
+* Updated Branding
+* Updated readme by making it more readable
 
-## 1.2.5 ##
-* Fixing an issue where http://translate.wordpress.org did not detect the stable version correctly.
+## 2.1.5 ##
+* Add support for translate.wordpress.org.
 
-## 1.2.4 ##
-* A few additional steps to make the plugin accessible to http://translate.wordpress.org.
+## 2.1.4 ##
+* Don't show the featured taxonomy on nav menu edit areas.
 
-## 1.2.3 ##
-* Move translations to http://translate.wordpress.org.
+## 2.1.3 ##
+* Fix another potential PHP notice.
 
-## 1.2.2 ##
-* Fixing PHP syntax error.
+## 2.1.2 ##
+* Fix PHP warning when checking for the old method of querying for featured posts.
 
-## 1.2.1 ##
-* Added ability for i18n using grunt-wp-i18n
-* Added english default .pot
-* Added minor security hardening so the class file would exit if called directly
-* Updated code formatting to be more inline with WordPress coding standards
-* Updated some method descriptions
-* Updated plugin description to be more... descriptive.
+## 2.1.1 ##
+* Fix deprecated widget instantiation method.
 
-## 1.2.0 ##
-* Add a setting to disable wpautop automatically on new posts.
-* Add filter (lp_wpautop_show_private_pt) for enabling the plugin on private post types.
+## 2.1 ##
+* Don't erase other terms in the pts_feature_tax assigned to the post on save. This opens up potential to have more than one type of "featured", (e.g. recommended).
 
-## 1.1.2 ##
-* Fixing bug that was preventing other settings on the writing page from saving.
-
-## 1.1.1 ##
-* Fixing bug where users upgrading from 1.0 would not receive the defaults for settings that were introduced in 1.1.
-
-## 1.1 ##
-* Adding the ability to choose which post types have the option to disable the wpautop filter on the Settings->Writing page.
-* When activating the plugin for the first time, all post types are set to have the ability to disable the wpautop filter. This can be changed on the Settings->Writing page.
-* Adding an uninstall hook to remove all traces of the plugin.
+## 2.0 ##
+* Changing how featured posts are designated. Instead of post meta, the plugin now uses a hidden taxonomy.
+* Added a widget for showing featured posts.
+* Fixed the post_class filter to work properly on secondary loops.
+* Fixed bug where the featured column would not show when viewing Media in the admin with list view.
+* Fixed bug where saving settings did not always work.
+* Changed the featured star in the admin to use the WordPress Dashicon font.
 
 ## 1.0 ##
 * Hello world!
+* Add settings to the Settings->Writing page allowing admins to select the post types that can be featured.
+* Add a check box in the publish meta box for marking a post as featured.
+* Featured posts receive a featured and featured-{$posttype} class on them via the post_class filter.
+* Admin post type screens have a column for Featured noting which posts are in fact featured.

@@ -14,7 +14,7 @@ let PRODUCTION   = !!( yargs.argv.production ); // Check for --production flag
 let VERSION_BUMP = yargs.argv.release;          // Check for --release (x.x.x semver version number)
 
 // Load settings from settings.yml
-const {COMPATIBILITY, PORT, UNCSS_OPTIONS, PATHS, LOCAL_PATH} = loadConfig();
+const {COMPATIBILITY, PORT, PATHS, LOCAL_PATH} = loadConfig();
 
 let sassConfig = {
 	mode: (PRODUCTION ? true : false)
@@ -48,7 +48,7 @@ let webpackConfig = {
  */
 function loadConfig() {
 	let ymlFile = fs.readFileSync('config.yml', 'utf8');
-	return yaml.load(ymlFile);
+	return yaml.load( ymlFile );
 }
 
 /**
@@ -97,7 +97,7 @@ gulp.task(
 /**
  * Create a README.MD file for github from the WordPress.org readme
  *
- * @since 1.2.0
+ * @since 2.3.0
  */
 function readme( done ) {
 	return gulp.src( ['readme.txt'] )
@@ -115,7 +115,7 @@ function readme( done ) {
 
 /**
  * Bump the version number within the define method of our plugin file
- * PHP Constant: example `define( 'COURIER_PRO_VERSION', '1.0.0' );`
+ * PHP Constant: example `define( 'POST_TYPE_SPOTLIGHT_VERSION', '1.0.0' );`
  *
  * Bump the version number within our meta data of the plugin file
  *
@@ -127,7 +127,7 @@ function readme( done ) {
  */
 function bumpPluginFile( done ) {
 
-	let constant        = 'TOGGLE_WPAUTOP_VERSION';
+	let constant        = 'POST_TYPE_SPOTLIGHT_VERSION';
 	let define_bump_obj = {
 		key: constant,
 		regex: new RegExp('([<|\'|"]?(' + constant + ')[>|\'|"]?[ ]*[:=,]?[ ]*[\'|"]?[a-z]?)(\\d+.\\d+.\\d+)(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z\\.-]+)?([\'|"|<]?)', 'ig' )
@@ -144,7 +144,7 @@ function bumpPluginFile( done ) {
 
 	let today = getReleaseDate();
 
-	return gulp.src( './toggle-wpautop.php' )
+	return gulp.src( './post-type-spotlight.php' )
 		.pipe( $.bump( bump_obj ) )
 		.pipe( $.bump( define_bump_obj ) )
 		.pipe( $.replace( /(((0)[0-9])|((1)[0-2]))(\/)([0-2][0-9]|(3)[0-1])(\/)\d{4}/ig, today ) )
@@ -253,7 +253,7 @@ function bumpPackageJson() {
 			file.stat.atime = date;
 			file.stat.mtime = date;
 			cb( null, file );
-		}) )
+		} ) )
 		.pipe( gulp.dest( '.' ) );
 }
 
@@ -261,7 +261,7 @@ function bumpPackageJson() {
  * Watch for changes to static assets
  * readme.txt
  *
- * @since 1.2.0
+ * @since 2.3.0
  */
 function watch() {
 	gulp.watch( 'readme.txt', readme );

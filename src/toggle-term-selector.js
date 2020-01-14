@@ -10,7 +10,6 @@ import { get, unescape as unescapeString, without, invoke } from 'lodash';
 /**
  * WordPress dependencies
  */
-import { __, _x, _n, sprintf } from '@wordpress/i18n';
 import { Component } from '@wordpress/element';
 import { withSpokenMessages, ToggleControl } from '@wordpress/components';
 import { withSelect, withDispatch } from '@wordpress/data';

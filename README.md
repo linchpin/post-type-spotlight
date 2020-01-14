@@ -1,35 +1,33 @@
-![Toggle wpautop](https://github.com/linchpin/post-type-spotlight/blob/master/.wordpress-org/banner-1544x500.png?raw=true)
+![Post Type Spotlight](https://github.com/linchpin/post-type-spotlight/blob/master/.wordpress-org/banner-1544x500.png?raw=true)
 
 ![Build Status](https://github.com/linchpin/post-type-spotlight/workflows/Create%20Release/badge.svg)
-[![Maintainability](https://api.codeclimate.com/v1/badges/b0952123b4fc04922a85/maintainability)](https://codeclimate.com/github/linchpin/toggle-wpautop/maintainability)
+[![Maintainability](https://api.codeclimate.com/v1/badges/571cf2f2437f6fe80c1a/maintainability)](https://codeclimate.com/github/linchpin/post-type-spotlight/maintainability)
+# Post Type Spotlight #
 
-# WordPress Toggle wpautop #
-
-Easily disable the default WordPress wpautop filter on a post by post basis.
+Easily allows you to designate posts, pages, attachments and custom post types as featured.
 
 ## Description ##
 
-**Note: This plugin does not support the block editor but should continue to work without issue when using it with custom post types and the [Classic Editor Plugin](https://wordpress.org/plugins/classic-editor/).**
+The plugin displays a checkbox in the publish meta box to feature a post. The checkbox only appears on admin selected post types which can be selected in the Settings->Writing screen.
 
-Before WordPress displays a post's content, the content gets passed through multiple filters to ensure that it safely appears how you enter it within the editor.
+When a post is designated as featured:
 
-One of these filters is [wpautop](http://codex.wordpress.org/Function_Reference/wpautop "wpautop"), which replaces double line breaks with `<p>` tags, and single line breaks with `<br />` tags. However, this filter sometimes causes issues when you are inputting a lot of HTML markup in the post editor.
+*   It receives 'featured' and 'featured-{$posttype}' classes via the post_class filter.
+*   Shows featured posts as such in the post type's admin screen
+*   Assigns a post a hidden taxonomy term (featured) that can easily be queried.
 
-This plugin displays a checkbox in the publish meta box of the post edit screen that disables the [wpautop](http://codex.wordpress.org/Function_Reference/wpautop "wpautop") filter for that post.
-
-Also adds a 'wpautop', or 'no-wpautop' class to the post_class filter to help with CSS styling.
+*Note: For the plugin to work on attachments, you must be using 3.5 or above. All other features will work on 3.1.0 and up.*
 
 ## Installation ##
 
 1. Upload the plugin folder to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Proceed to the Settings->Writing and select which post types should have the option to disable the wpautop filter.
+3. Navigate to the Settings->Writing section and select the post types you would like to have the featured abilities.
 
 
 ## Screenshots ##
 
-1. The disable wpautop checkbox on post edit screens.
-2. Settings->Writing page with plugin settings.
-
-![Linchpin](https://github.com/linchpin/brand-assets/blob/master/github-opensource-banner.png?raw=true)
-
+1. The settings page.
+2. Options on the edit screen
+3. Markup example when using post_class();
+4. Shows featured posts in post edit tables.

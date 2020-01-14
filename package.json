@@ -12,7 +12,8 @@
     "lint:pkg-json": "wp-scripts lint-pkg-json",
     "start": "wp-scripts start",
     "test:e2e": "wp-scripts test-e2e",
-    "test:unit": "wp-scripts test-unit-js"
+    "test:unit": "wp-scripts test-unit-js",
+    "gulp readme": "gulp readme"
   },
   "author": "Linchpin <sayhi@linchpin.com>",
   "license": "GPL",
@@ -25,7 +26,7 @@
   },
   "devDependencies": {
     "@babel/core": "7.7.7",
-    "@babel/preset-env": "7.7.7",
+    "@babel/preset-env": "^7.8.3",
     "@babel/register": "7.7.7",
     "@wordpress/api-fetch": "^3.9.0",
     "@wordpress/components": "^9.0.0",
@@ -60,10 +61,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/linchpin/toggle-wpautop.git"
+    "url": "https://github.com/linchpin/post-type-spotlight.git"
   },
   "bugs": {
-    "url": "https://github.com/linchpin/toggle-wpautop/issues",
+    "url": "https://github.com/linchpin/post-type-spotlight/issues",
     "email": "sayhi@linchpin.com"
   },
   "engines": {
