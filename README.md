@@ -1,6 +1,6 @@
-![Toggle wpautop](https://github.com/linchpin/toggle-wpautop/blob/master/.wordpress-org/banner-1544x500.png?raw=true)
+![Toggle wpautop](https://github.com/linchpin/post-type-spotlight/blob/master/.wordpress-org/banner-1544x500.png?raw=true)
 
-![Build Status](https://github.com/linchpin/toggle-wpautop/workflows/Create%20Release/badge.svg)
+![Build Status](https://github.com/linchpin/post-type-spotlight/workflows/Create%20Release/badge.svg)
 [![Maintainability](https://api.codeclimate.com/v1/badges/b0952123b4fc04922a85/maintainability)](https://codeclimate.com/github/linchpin/toggle-wpautop/maintainability)
 
 # WordPress Toggle wpautop #
