@@ -1,0 +1,79 @@
+{
+  "name": "post-type-spotlight",
+  "version": "2.2.0",
+  "description": "Easily allows you to designate posts, pages, attachments and custom post types as featured.",
+  "main": "gulpfile.babel.js",
+  "scripts": {
+    "build": "wp-scripts build",
+    "check-engines": "wp-scripts check-engines",
+    "check-licenses": "wp-scripts check-licenses",
+    "lint:css": "wp-scripts lint-style",
+    "lint:js": "wp-scripts lint-js",
+    "lint:pkg-json": "wp-scripts lint-pkg-json",
+    "start": "wp-scripts start",
+    "test:e2e": "wp-scripts test-e2e",
+    "test:unit": "wp-scripts test-unit-js"
+  },
+  "author": "Linchpin <sayhi@linchpin.com>",
+  "license": "GPL",
+  "dependencies": {
+    "@wordpress/compose": "^3.10.0",
+    "@wordpress/element": "^2.10.0",
+    "@wordpress/i18n": "^3.8.0",
+    "@wordpress/plugins": "^2.9.0",
+    "save-dev": "^0.0.1-security"
+  },
+  "devDependencies": {
+    "@babel/core": "7.7.7",
+    "@babel/preset-env": "7.7.7",
+    "@babel/register": "7.7.7",
+    "@wordpress/api-fetch": "^3.9.0",
+    "@wordpress/components": "^9.0.0",
+    "@wordpress/data": "^4.12.0",
+    "@wordpress/scripts": "^6.1.1",
+    "@wordpress/url": "^2.9.0",
+    "autoprefixer": "9.7.3",
+    "babel-loader": "8.0.6",
+    "gulp": "4.0.2",
+    "gulp-babel": "8.0.0",
+    "gulp-bump": "3.1.3",
+    "gulp-cli": "2.2.0",
+    "gulp-concat": "2.6.1",
+    "gulp-extname": "0.2.2",
+    "gulp-if": "3.0.0",
+    "gulp-load-plugins": "1.6.0",
+    "gulp-readme-to-markdown": "0.2.1",
+    "gulp-replace": "^1.0.0",
+    "gulp-sourcemaps": "2.6.5",
+    "gulp-uglify": "3.0.2",
+    "js-yaml": "3.13.1",
+    "rimraf": "2.7.1",
+    "through2": "^3.0.1",
+    "vinyl-named": "1.1.0",
+    "webpack": "4.41.3",
+    "webpack-cli": "^3.3.10",
+    "webpack-stream": "5.2.1",
+    "yargs": "12.0.5"
+  },
+  "resolutions": {
+    "lodash.template": "^4.5.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/linchpin/toggle-wpautop.git"
+  },
+  "bugs": {
+    "url": "https://github.com/linchpin/toggle-wpautop/issues",
+    "email": "sayhi@linchpin.com"
+  },
+  "engines": {
+    "node": ">= 10.13.0"
+  },
+  "private": true,
+  "browserslist": [
+    "last 1 version",
+    "> 1%",
+    "maintained node versions",
+    "not dead"
+  ]
+}
