@@ -5,6 +5,7 @@
 * Updated PHPCS and WPCS
 * Updated Branding
 * Updated readme by making it more readable
+* Added Gutenberg/Block Editor support
 
 ## 2.1.5 ##
 * Add support for translate.wordpress.org.
