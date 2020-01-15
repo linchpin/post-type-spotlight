@@ -7,7 +7,8 @@ This is not the same as sticky posts. Sticky functionality can only be applied t
 ## How do I find just my featured posts? ##
 
 This snippet of code will fetch the 10 most recent posts that are featured.
-`<?php
+
+``<?php
 	$featured_posts = new WP_Query( array(
 		'post_type' => 'post',
 		'posts_per_page' => 10,
@@ -25,4 +26,4 @@ This snippet of code will fetch the 10 most recent posts that are featured.
 		//output featured posts here
 
 	endwhile; endif;
-?>`
+?>``

@@ -15,7 +15,7 @@ The plugin displays a checkbox in the publish meta box to feature a post. The ch
 
 When a post is designated as featured:
 
-*   It receives 'featured' and 'featured-{$posttype}' classes via the post_class filter.
+*   It receives 'featured' and `featured-{$posttype}` classes via the post_class filter.
 *   Shows featured posts as such in the post type's admin screen
 *   Assigns a post a hidden taxonomy term (featured) that can easily be queried.
 
@@ -36,7 +36,8 @@ This is not the same as sticky posts. Sticky functionality can only be applied t
 = How do I find just my featured posts? =
 
 This snippet of code will fetch the 10 most recent posts that are featured.
-`<?php
+
+``<?php
 	$featured_posts = new WP_Query( array(
 		'post_type' => 'post',
 		'posts_per_page' => 10,
@@ -54,13 +55,13 @@ This snippet of code will fetch the 10 most recent posts that are featured.
 		//output featured posts here
 
 	endwhile; endif;
-?>`
+?>``
 
 == Screenshots ==
 
 1. The settings page.
 2. Options on the edit screen
-3. Markup example when using post_class();
+3. Markup example when using `post_class();`
 4. Shows featured posts in post edit tables.
 
 == Changelog ==
