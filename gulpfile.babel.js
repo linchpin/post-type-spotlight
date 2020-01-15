@@ -14,7 +14,7 @@ let PRODUCTION   = !!( yargs.argv.production ); // Check for --production flag
 let VERSION_BUMP = yargs.argv.release;          // Check for --release (x.x.x semver version number)
 
 // Load settings from settings.yml
-const {COMPATIBILITY, PORT, PATHS, LOCAL_PATH} = loadConfig();
+const {COMPATIBILITY, PORT, PATHS, LOCAL_PATH, BANNERS} = loadConfig();
 
 let sassConfig = {
 	mode: (PRODUCTION ? true : false)
@@ -73,8 +73,8 @@ gulp.task(
 		bumpPluginFile,
 		bumpPackageJson,
 		bumpReadmeStableTag,
-		bumpComposerJson,
-		readme
+		readme,
+		addWrappers,
 	)
 );
 
@@ -82,7 +82,8 @@ gulp.task(
 gulp.task(
 	'readme',
 	gulp.series(
-		readme
+		readme,
+		addWrappers,
 	)
 );
 
@@ -109,8 +110,27 @@ function readme( done ) {
 				'Frequently Asked Questions': 'FAQ'
 			}
 		} ) )
-		.pipe(gulp.dest('./')
+		.pipe(
+			gulp.dest('./')
 		);
+}
+
+function addWrappers( done ) {
+
+	let intro = [
+		'<%= BANNERS.plugin %>\n\n',
+		'<%= BANNERS.build_status %> ',
+		'<%= BANNERS.maintain %>\n\n',
+		''].join('');
+
+	let outro = [
+		'<%= BANNERS.linchpin %>\n',
+		''].join('');
+
+	return gulp.src( ['README.md'] )
+		.pipe( $.header( intro, { BANNERS : BANNERS } ) )
+		.pipe( $.footer( outro, { BANNERS : BANNERS } ) )
+		.pipe( gulp.dest('./') )
 }
 
 /**

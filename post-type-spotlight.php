@@ -4,7 +4,7 @@
  * Plugin Name: Post Type Spotlight
  * Plugin URI: https://wordpress.org/plugins/post-type-spotlight/
  * Description: Allows admin chosen post types to have a featured post check box on the edit screen. Also adds appropriate classes to front end post display, and allows featured posts to be queried via a taxonomy query.
- * Version: 2.1.5
+ * Version: 2.2.0
  * Author: Linchpin & Jonathan Desrosiers
  * Author URI: https://linchpin.com/?utm_source=post-type-spotlight&utm_medium=plugin-admin-page&utm_campaign=wp-plugin
  * License: GPLv2
@@ -22,11 +22,11 @@ if ( ! defined( 'ABSPATH') ) {
  */
 
 if ( ! defined( 'POST_TYPE_SPOTLIGHT_VERSION' ) ) {
-	define( 'POST_TYPE_SPOTLIGHT_VERSION', '1.2.0' );
+	define( 'POST_TYPE_SPOTLIGHT_VERSION', '2.2.0' );
 }
 
 if ( ! defined( 'POST_TYPE_SPOTLIGHT_RELEASE_DATE' ) ) {
-	define( 'POST_TYPE_SPOTLIGHT_RELEASE_DATE', '01/09/2020' );
+	define( 'POST_TYPE_SPOTLIGHT_RELEASE_DATE', '01/15/2020' );
 }
 
 // Define the main plugin file to make it easy to reference in subdirectories.

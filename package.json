@@ -13,7 +13,8 @@
     "start": "wp-scripts start",
     "test:e2e": "wp-scripts test-e2e",
     "test:unit": "wp-scripts test-unit-js",
-    "gulp readme": "gulp readme"
+    "gulp readme": "gulp readme",
+    "gulp release": "gulp build:release --production --release=2.2.0"
   },
   "author": "Linchpin <sayhi@linchpin.com>",
   "license": "GPL",
@@ -22,6 +23,8 @@
     "@wordpress/element": "^2.10.0",
     "@wordpress/i18n": "^3.8.0",
     "@wordpress/plugins": "^2.9.0",
+    "gulp-footer": "^2.0.2",
+    "gulp-header": "^2.0.9",
     "save-dev": "^0.0.1-security"
   },
   "devDependencies": {

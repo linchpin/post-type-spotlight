@@ -1,7 +1,7 @@
 ![Post Type Spotlight](https://github.com/linchpin/post-type-spotlight/blob/master/.wordpress-org/banner-1544x500.png?raw=true)
 
-![Build Status](https://github.com/linchpin/post-type-spotlight/workflows/Create%20Release/badge.svg)
-[![Maintainability](https://api.codeclimate.com/v1/badges/571cf2f2437f6fe80c1a/maintainability)](https://codeclimate.com/github/linchpin/post-type-spotlight/maintainability)
+![Build Status](https://github.com/linchpin/post-type-spotlight/workflows/Create%20Release/badge.svg) ![Maintainability](https://api.codeclimate.com/v1/badges/571cf2f2437f6fe80c1a/maintainability)
+
 # Post Type Spotlight #
 
 Easily allows you to designate posts, pages, attachments and custom post types as featured.
@@ -31,3 +31,5 @@ When a post is designated as featured:
 2. Options on the edit screen
 3. Markup example when using post_class();
 4. Shows featured posts in post edit tables.
+
+![Linchpin](https://github.com/linchpin/brand-assets/blob/master/github-opensource-banner.png?raw=true)
