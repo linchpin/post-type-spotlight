@@ -1,0 +1,31 @@
+{
+	"name": "post-type-spotlight-blocks",
+	"version": "2.2.0",
+	"description": "Blocks Editor Functionality for Post Type Spotlight",
+	"author": "Linchpin",
+	"license": "GPL-2.0-or-later",
+	"main": "build/index.js",
+	"scripts": {
+		"build": "wp-scripts build",
+		"format": "wp-scripts format",
+		"lint:css": "wp-scripts lint-style",
+		"lint:js": "wp-scripts lint-js",
+		"start": "wp-scripts start",
+		"packages-update": "wp-scripts packages-update"
+	},
+	"dependencies": {
+		"@wordpress/block-editor": "^12.6.0",
+		"@wordpress/blocks": "^12.15.0",
+		"@wordpress/components": "^25.4.0",
+		"@wordpress/compose": "^6.15.0",
+		"@wordpress/data": "^9.8.0",
+		"@wordpress/element": "^5.15.0",
+		"@wordpress/i18n": "^4.38.0",
+		"classnames": "2.3.2",
+		"dompurify": "3.0.1",
+		"lodash": "4.17.21"
+	},
+	"devDependencies": {
+		"@wordpress/scripts": "^26.9.0"
+	}
+}

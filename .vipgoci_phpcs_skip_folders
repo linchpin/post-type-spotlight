@@ -1,0 +1,9 @@
+.github
+.deployment
+.husky
+node_modules
+vendor
+assets
+blocks/build
+blocks/node_modules
+js

@@ -2,7 +2,7 @@
 Contributors: linchpin_agency, desrosj, aware
 Tags: featured, post type, sticky, posts, custom post types
 Requires at least: 3.1.0
-Tested up to: 5.3
+Tested up to: 6.3
 Stable tag: 2.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -65,6 +65,26 @@ This snippet of code will fetch the 10 most recent posts that are featured.
 4. Shows featured posts in post edit tables.
 
 == Changelog ==
+
+= 3.0.0 =
+
+* Removed Yarn as package manager
+* Added npm as base package manager
+* Added Gulp as build tool
+* Added ESLint for JS linting
+* Added Stylelint for CSS linting
+* Added EditorConfig for consistent coding styles
+* Added Husky for pre-commit hooks
+* Added Prettier for code formatting
+* Added PHPCS for PHP linting
+* Added WPCS for WordPress PHP linting
+* Added Composer for PHP package management
+* Added wp-scripts for WordPress build scripts
+* Added webpack for JS module bundling
+* Removed Babel for js transpiling as it wasn't needed any more
+* Numerous bug fixes and improvements
+* Updated readme
+* Bunch of minor security updates within build process (non frontend facing)
 
 = 2.2.0 =
 * Updated the build process

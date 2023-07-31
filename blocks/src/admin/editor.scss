@@ -1,0 +1,42 @@
+.linchpin-hide-title-label {
+
+  &.components-base-control {
+	text-transform: capitalize;
+
+	.components-base-control__help {
+	  margin-top: 5px;
+	  background: #fbf9c1;
+	  padding: 1px 10px;
+	  margin-left: 0;
+	  font-size: 13px;
+	}
+  }
+}
+
+body {
+
+  &.linchpin-title-hidden {
+
+	.editor-post-title__input {
+	  opacity: 0.5;
+
+	  &::before {
+		display: inline-flex;
+		content: '';
+
+		/* Using the background-image and
+		   its related properties to add
+		   the SVG content */
+		background-image: url('gfg_logo.svg');
+		background-size: 40px 40px;
+		height: 40px;
+		width: 40px;
+	  }
+	}
+
+	.linchpin-hidden-title-label {
+	  display: block;
+	}
+  }
+
+}
