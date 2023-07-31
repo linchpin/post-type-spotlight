@@ -42,7 +42,7 @@ jobs:
         id: latest_version
         run: |
           TAG=${{ steps.get_version.outputs.tag }}
-          echo ::set-output name=VERSION::${TAG#v}
+          echo "VERSION=${TAG#v}" >> $GITHUB_OUTPUT
 
       - name: Cache Composer dependencies
         uses: actions/cache@v3
@@ -94,9 +94,6 @@ jobs:
           name: post-type-spotlight.zip
           overwrite: true
 
-      - name: Get Version
-        id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
