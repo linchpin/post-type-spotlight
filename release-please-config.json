@@ -1,6 +1,6 @@
 {
-	"package-name": "post-type-spotlight",
-	"release-type": "php",
+  "release-type": "php",
+  "package-name": "post-type-spotlight",
 	"packages": {
 		".": {
 			"release-type": "php",

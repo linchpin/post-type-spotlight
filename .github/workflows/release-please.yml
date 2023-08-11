@@ -23,6 +23,8 @@ jobs:
           bump-minor-pre-major: true
           token: ${{ secrets.GH_BOT_TOKEN }}
           versioning-strategy: always-bump-patch
+          command: manifest
+          package-name: post-type-spotlight
 
   build:
     needs: release-please
