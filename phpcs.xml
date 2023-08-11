@@ -28,6 +28,9 @@
 
     <!-- Check all files in this directory and the directories below it. -->
     <file>.</file>
+    <file>class-post-type-spotlight.php</file>
+    <file>class-post-type-spotlight-block-editor.php</file>
+    <file>class-pts-featured-posts-widget.php</file>
 
     <!-- Exclude directories and files. -->
     <exclude-pattern type="relative">\.github/*</exclude-pattern>
