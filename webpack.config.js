@@ -6,8 +6,7 @@ module.exports = {
 	mode: "production",
 	entry: [
 		path.resolve( __dirname, './src/js/index.js' ),
-		path.resolve( __dirname, './src/scss/editor.scss' ),
-		path.resolve( __dirname, './src/scss/frontend.scss' )
+		path.resolve( __dirname, './src/scss/editor.scss' )
 	],
 	devtool: "eval-source-map",
 	module: {

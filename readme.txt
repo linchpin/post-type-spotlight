@@ -1,9 +1,9 @@
 === Post Type Spotlight ===
 Contributors: linchpin_agency, desrosj, aware
 Tags: featured, post type, sticky, posts, custom post types
-Requires at least: 3.1.0
+Requires at least: 5.1.0
 Tested up to: 6.3
-Stable tag: 2.2.0
+Stable tag: 3.3.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,7 +70,7 @@ This snippet of code will fetch the 10 most recent posts that are featured.
 
 * Removed Yarn as package manager
 * Added npm as base package manager
-* Added Gulp as build tool
+* Removed Gulp as build tool
 * Added ESLint for JS linting
 * Added Stylelint for CSS linting
 * Added EditorConfig for consistent coding styles

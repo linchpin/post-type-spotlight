@@ -4,7 +4,7 @@
  * Plugin Name: Post Type Spotlight
  * Plugin URI: https://wordpress.org/plugins/post-type-spotlight/
  * Description: Allows admin chosen post types to have a featured post check box on the edit screen. Also adds appropriate classes to front end post display, and allows featured posts to be queried via a taxonomy query.
- * Requires at least: 6.0
+ * Requires at least: 5.1
  * x-release-please-start-version
  * Version: 2.2.0
  * x-release-please-end

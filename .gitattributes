@@ -32,3 +32,4 @@
 /.release-please-manifest.json
 /.vipgoci_lint_skip_folders
 /.vipgoci_phpcs_skip_folders
+/package-lock.json export-ignore
