@@ -32,6 +32,6 @@
     "email": "sayhi@linchpin.com"
   },
   "engines": {
-    "node": ">= 16"
+    "node": ">= v16.20.2"
   }
 }
