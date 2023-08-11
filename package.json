@@ -71,13 +71,6 @@
     "email": "sayhi@linchpin.com"
   },
   "engines": {
-    "node": ">= 10.13.0"
-  },
-  "private": true,
-  "browserslist": [
-    "last 1 version",
-    "> 1%",
-    "maintained node versions",
-    "not dead"
-  ]
+    "node": ">= 16"
+  }
 }

@@ -20,7 +20,10 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			add_action( 'plugins_loaded', array( $this, 'plugins_loaded' ) );
 			add_action( 'init', array( $this, 'init' ) );
 			add_action( 'widgets_init', array( $this, 'widgets_init' ) );
+
 			add_action( 'admin_init', array( $this, 'admin_init' ) );
+			add_action( 'rest_api_init', 'admin_init' );
+
 			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
 			add_action( 'save_post', array( $this, 'save_post' ) );
 			add_action( 'edit_attachment', array( $this, 'save_post' ) );
@@ -28,7 +31,6 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_styles' ) );
 
 			add_filter( 'post_class', array( $this, 'post_class' ), 10, 3 );
-			add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_block_editor_scripts' ) );
 
 			$this->doing_upgrades = false;
 		}
@@ -98,8 +100,8 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 					array(
 						'labels'             => $labels,
 						'hierarchical'       => false,
-						'show_ui'            => true,
-						'query_var'          => true,
+						'show_ui'            => false,
+						'query_var'          => false,
 						'rewrite'            => false,
 						'show_in_rest'       => true,
 						'show_admin_column'  => false,
@@ -124,6 +126,37 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			}
 		}
 
+
+		/**
+		 * Check if the taxonomy term is created, if not create it
+		 *
+		 * Since 2.3.0
+		 *
+		 * @return void
+		 */
+		public function check_if_term_exists() {
+
+			if ( taxonomy_exists( 'pts_feature_tax' ) ) {
+
+				$term = term_exists( 'featured', 'pts_feature_tax' );
+
+				// If the term doesn't exist, insert it
+				if ( 0 === $term || null === $term ) {
+					wp_insert_term(
+							'featured', // the term
+							'pts_feature_tax', // the taxonomy
+							[
+									'description' => __( 'Featured term, used by PTS', 'post-type-spotlight' ),
+									'slug'        => 'featured',
+							]
+					);
+				}
+
+			}
+
+		}
+
+
 		/**
 		 * admin_init function.
 		 *
@@ -132,8 +165,17 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 		 */
 		public function admin_init() {
 			$this->check_for_updates();
+			$this->check_if_term_exists();
 
-			register_setting( 'writing', 'pts_featured_post_types_settings', array( $this, 'sanitize_settings' ) );
+			register_setting(
+				'writing',
+				'pts_featured_post_types_settings',
+				[
+					'type'              => 'array',
+					'show_in_rest'      => true,
+					'sanitize_callback' => [ $this, 'sanitize_settings' ],
+				]
+			);
 
 			// Add a section for the plugin's settings on the writing page.
 			add_settings_section( 'pts_featured_posts_settings_section', __( 'Featured Post Types', 'post-type-spotlight' ), array( $this, 'settings_section_text' ), 'writing' );
@@ -173,6 +215,8 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 					}
 				}
 			}
+
+
 		}
 
 		/**
@@ -201,6 +245,7 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 					),
 					'cache_results'  => false,
 				);
+
 				$featured_posts = new WP_Query( $args );
 
 				while ( $featured_posts->have_posts() ) {

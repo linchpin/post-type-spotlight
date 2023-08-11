@@ -1,59 +1,76 @@
 import { registerPlugin } from '@wordpress/plugins';
 import { PluginPostStatusInfo } from '@wordpress/edit-post';
 import { __ } from '@wordpress/i18n';
-import {ToggleControl} from "@wordpress/components";
-import { useSelect } from '@wordpress/data';
-import { useEntityProp } from '@wordpress/core-data';
+import { ToggleControl, Card, CardBody, __experimentalHeading as Heading, __experimentalHStack as HStack, Tooltip, Icon } from "@wordpress/components";
+import { useSelect, useDispatch } from '@wordpress/data';
+import { useEntityProp } from "@wordpress/core-data";
 import {capitalize} from "lodash";
+
+import LogoMark from '../components/logo-mark';
 
 const Admin = () => {
 
-	const postType = useSelect(
-		( select ) => select( 'core/editor' ).getCurrentPostType(),
-		[]
-	);
+  const postId = useSelect( ( select ) => select( 'core/editor' ).getCurrentPostId() );
+  const postType = useSelect( ( select ) => select( 'core/editor' ).getCurrentPostType() );
+  let featuredTerm = useSelect( ( select ) => select( 'core' ).getEntityRecords( 'taxonomy', 'pts_feature_tax', { slug: 'featured' } ) );
+  let postTerms = useSelect( ( select ) => select( 'core/editor' ).getEditedPostAttribute( 'pts_feature_tax' ) );
 
-	const [ meta, setMeta ] = useEntityProp( 'postType', postType, 'meta' );
+  if ( postTerms && ! Array.isArray( postTerms ) ) {
+    postTerms = [ postTerms ];
+  }
 
-	const metaFieldValue = meta[ '_lp_hide_title' ];
-	const updateMetaValue = ( newValue ) => {
-		setMeta( { ...meta, _lp_hide_title: newValue } );
-	};
+  featuredTerm = featuredTerm ? featuredTerm[0]?.id : null;
+  const isFeatured  = featuredTerm && (postTerms.includes( featuredTerm ) || postTerms === featuredTerm );
 
-	useSelect( ( select ) => {
+  const { editEntityRecord, saveEntityRecord } = useDispatch( 'core' );
 
-		const titleBlock = document.querySelector( '.wp-block-post-title' );
+  const [ postTypeSpotlightSettings, setPostTypeSpotlightSettings ] = useEntityProp( 'root', 'site', 'pts_featured_post_types_settings' );
 
-		if ( titleBlock ) {
-			const bodyClass = meta._lp_hide_title ? 'linchpin-title-hidden' : 'linchpin-title-visible';
+  // If the post type is not enabled in our writing settings
+  // then we can die early.
+  if ( ! postTypeSpotlightSettings || ( postTypeSpotlightSettings && postTypeSpotlightSettings.indexOf( postType ) === -1 ) ) {
+    return null;
+  }
 
-			document.body.classList.remove( 'linchpin-title-visible' );
-			document.body.classList.remove( 'linchpin-title-hidden' );
+  const onUpdateFeatured = ( newValue ) => {
+    const updatedTerms = newValue
+      ? [...postTerms, featuredTerm]
+      : postTerms.filter( ( termId ) => termId !== featuredTerm );
 
-			document.body.classList.add( bodyClass );
-		}
-
-	});
+    editEntityRecord( 'postType', postType, postId, { pts_feature_tax: updatedTerms } );
+  };
 
 	return (
 		<PluginPostStatusInfo
-			name="linchpin-post-settings-panel"
-			title={ __('Linchpin Settings', 'linchpin' ) }
-			className="linchpin-post-settings"
+			name="pts-post-settings-panel"
+			title={ __('Post Type Spotlight Settings', 'linchpin' ) }
+			className="pts-post-settings-panel"
+      style={{width:'100%'}}
 		>
-			<ToggleControl
-				label={ sprintf( __( 'Hide Title for this %1$s', 'linchpin' ), capitalize( postType ) ) }
-				checked={ meta._lp_hide_title }
-				onChange={( ) => {
-					updateMetaValue( ! meta._lp_hide_title );
-				} }
-				help={ meta._lp_hide_title  ? __( 'Title is hidden and only visible in the admin', 'linchpin' ) : null }
-			/>
+            <HStack
+              alignment="top"
+              justify="flex-start"
+              spacing="3"
+              style={{
+                marginTop: "calc(12px)",
+                minHeight: '3rem'
+              }}
+            >
+              <Tooltip text={sprintf(__('You can query all featured %1$s using the pts_feature_tax'), postType)}>
+                  <Icon icon={<LogoMark width={'24px'} height={'24px'} />} />
+              </Tooltip>
+              <ToggleControl
+                checked={isFeatured}
+                label={ sprintf( __( 'Feature %1$s', 'post-type-spotlight' ), capitalize( postType ) ) }
+                onChange={onUpdateFeatured}
+                style={{marginBottom:"0!important"}}
+              />
+            </HStack>
 		</PluginPostStatusInfo>
 	);
 }
 
-registerPlugin( 'linchpin-post-settings', {
+registerPlugin( 'post-type-post-settings', {
 	render: Admin,
-	icon: 'palmtree',
+	icon: LogoMark,
 } );
