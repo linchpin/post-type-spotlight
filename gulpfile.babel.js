@@ -2,7 +2,6 @@
 let gulp     = require( 'gulp' );
 let plugins  = require( 'gulp-load-plugins' );
 let yargs    = require( 'yargs' );
-let rimraf   = require( 'rimraf' );
 let yaml     = require( 'js-yaml' );
 let fs       = require( 'fs' );
 let through2 = require( 'through2' );
@@ -44,14 +43,6 @@ let webpackConfig = {
 };
 
 /**
- * Load in additional config files
- */
-function loadConfig() {
-	let ymlFile = fs.readFileSync('config.yml', 'utf8');
-	return yaml.load( ymlFile );
-}
-
-/**
  * Set production mode during the build process
  *
  * @param done
@@ -64,15 +55,12 @@ function setProductionMode(done) {
 	done();
 }
 
-// Build the "dist" folder by running all of the below tasks
+// Build the "dist" folder by running all the below tasks
 // Sass must be run later so UnCSS can search for used classes in the others assets.
 gulp.task(
 	'build:release',
 	gulp.series(
 		setProductionMode,
-		bumpPluginFile,
-		bumpPackageJson,
-		bumpReadmeStableTag,
 		readme,
 		addWrappers,
 	)
@@ -134,50 +122,6 @@ function addWrappers( done ) {
 }
 
 /**
- * Bump the version number within the define method of our plugin file
- * PHP Constant: example `define( 'POST_TYPE_SPOTLIGHT_VERSION', '1.0.0' );`
- *
- * Bump the version number within our meta data of the plugin file
- *
- * Update the release date with today's date
- *
- * @since 1.2.0
- *
- * @return {*}
- */
-function bumpPluginFile( done ) {
-
-	let constant        = 'POST_TYPE_SPOTLIGHT_VERSION';
-	let define_bump_obj = {
-		key: constant,
-		regex: new RegExp('([<|\'|"]?(' + constant + ')[>|\'|"]?[ ]*[:=,]?[ ]*[\'|"]?[a-z]?)(\\d+.\\d+.\\d+)(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z\\.-]+)?([\'|"|<]?)', 'ig' )
-	};
-
-	let bump_obj = {
-		key: 'Version',
-	};
-
-	if ( VERSION_BUMP ) {
-		bump_obj.version        = VERSION_BUMP;
-		define_bump_obj.version = VERSION_BUMP;
-	}
-
-	let today = getReleaseDate();
-
-	return gulp.src( './post-type-spotlight.php' )
-		.pipe( $.bump( bump_obj ) )
-		.pipe( $.bump( define_bump_obj ) )
-		.pipe( $.replace( /(((0)[0-9])|((1)[0-2]))(\/)([0-2][0-9]|(3)[0-1])(\/)\d{4}/ig, today ) )
-		.pipe( through2.obj( function( file, enc, cb ) {
-			let date        = new Date();
-			file.stat.atime = date;
-			file.stat.mtime = date;
-			cb( null, file );
-		}) )
-		.pipe( gulp.dest( './' ) );
-}
-
-/**
  * Update the what's new template with the date of the release instead of having to manually update it every release
  *
  * @since 1.2.0
@@ -193,88 +137,6 @@ function getReleaseDate() {
 	today = mm + '/' + dd + '/' + yyyy;
 
 	return today;
-}
-
-/**
- * Bump the composer.json
- *
- * @since 1.2.0
- *
- * @return {*}
- */
-function bumpComposerJson() {
-
-	let bump_obj = {
-		key:'version'
-	};
-
-	if ( VERSION_BUMP ) {
-		bump_obj.version = VERSION_BUMP;
-	}
-
-	return gulp.src( './composer.json' )
-		.pipe( $.bump( bump_obj ) )
-		.pipe( through2.obj( function( file, enc, cb ) {
-			let date        = new Date();
-			file.stat.atime = date;
-			file.stat.mtime = date;
-			cb( null, file );
-		}) )
-		.pipe( gulp.dest( '.' ) );
-}
-
-/**
- * bump readme file stable tag to our latest version
- *
- * @since 1.2.0
- *
- * @return {*}
- */
-function bumpReadmeStableTag() {
-
-	let bump_obj = { key: "Stable tag" };
-
-	if ( VERSION_BUMP ) {
-		bump_obj.version = VERSION_BUMP;
-	}
-
-	return gulp.src( './readme.txt' )
-		.pipe( $.bump( bump_obj ) )
-		.pipe( through2.obj( function( file, enc, cb ) {
-			let date        = new Date();
-			file.stat.atime = date;
-			file.stat.mtime = date;
-			cb( null, file );
-		}) )
-		.pipe( gulp.dest( './' ) );
-}
-
-/**
- * Bump the package.json
- *
- * @since 1.2.0
- *
- * @return {*}
- */
-function bumpPackageJson() {
-
-	let bump_obj = {
-		key: 'version'
-	};
-
-	if (VERSION_BUMP) {
-		bump_obj.version = VERSION_BUMP;
-	}
-
-	return gulp.src( './package.json' )
-		.pipe( $.bump( bump_obj ) )
-		.pipe( through2.obj( function( file, enc, cb ) {
-			let date        = new Date();
-			file.stat.atime = date;
-			file.stat.mtime = date;
-			cb( null, file );
-		} ) )
-		.pipe( gulp.dest( '.' ) );
 }
 
 /**

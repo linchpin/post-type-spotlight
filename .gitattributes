@@ -6,7 +6,8 @@
 /.github/ export-ignore
 /assets/ export-ignore
 /node_modules/ export-ignore
-
+/blocks/node_modules
+/blocks/src
 # Files
 /.gitignore export-ignore
 /.gitattributes export-ignore
@@ -17,3 +18,17 @@
 /yarn.lock export-ignore
 /config.yml export-ignore
 /renovate.json export-ignore
+/package.json export-ignore
+/webpack.config.js export-ignore
+/renovate.json export-ignore
+/release-please-config.json export-ignore
+/phpunnit.xml export-ignore
+/phpcs.xml export-ignore
+/phpdoc.dist.xml export-ignore
+/composer.json export-ignore
+/composer.lock.json export-ignore
+/.phplint.yml export-ignore
+/.php-cs-fixer.dist.php export-ignore
+/.release-please-manifest.json
+/.vipgoci_lint_skip_folders
+/.vipgoci_phpcs_skip_folders
