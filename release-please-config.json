@@ -5,39 +5,19 @@
 		".": {
 			"release-type": "php",
 			"extra-files": [
-				{
-					"path": "post-type-spotlight.php"
-				},
-				{
-					"path": "readme.txt"
-				},
-				{
-					"path": "CHANGELOG.md"
-				},
-				{
-					"path": "README.md"
-				},
-				{
-					"path": ".release-please-manifest.json"
-				},
-				{
-					"type": "json",
-					"path": "package.json",
-					"jsonpath": "$.version"
-				},
+        {
+          "type": "json",
+          "path": "package.json",
+          "jsonpath": "$.version"
+        },
+				"post-type-spotlight.php",
+				"readme.txt",
+        "CHANGELOG.md",
+				"README.md",
+				".release-please-manifest.json",
 				{
 					"type": "json",
 					"path": "blocks/package.json",
-					"jsonpath": "$.version"
-				},
-				{
-					"type": "json",
-					"path": "frontend/package.json",
-					"jsonpath": "$.version"
-				},
-				{
-					"type": "json",
-					"path": "composer.json",
 					"jsonpath": "$.version"
 				}
 			]
