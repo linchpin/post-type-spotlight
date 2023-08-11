@@ -27,7 +27,7 @@
   "type": "wordpress-plugin",
   "private": true,
   "require": {
-    "php": ">=7.0",
+    "php": ">=8.2.9",
     "composer/installers": "^v2.2.0"
   },
   "require-dev": {
