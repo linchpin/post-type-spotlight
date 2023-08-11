@@ -25,7 +25,7 @@ jobs:
           php phpDocumentor.phar --directory=./application/Controller/Integrations --target=./wiki --template='vendor/saggre/phpdocumentor-markdown/themes/markdown'
 
       - name: Push Wiki Changes
-        uses: Andrew-Chen-Wang/github-wiki-action@v3
+        uses: Andrew-Chen-Wang/github-wiki-action@v4
         env:
           # Make sure you have that / at the end. We use rsync
           # WIKI_DIR's default is wiki/
