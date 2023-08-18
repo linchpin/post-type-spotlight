@@ -59,18 +59,19 @@ This snippet of code will fetch the 10 most recent posts that are featured.
 
 == Screenshots ==
 
-1. The settings page.
-2. Options on the edit screen
-3. Markup example when using `post_class();`
-4. Shows featured posts in post edit tables.
+1. The publish area with the featured toggle.
+2. The featured list block
+3. The settings page
+4. Options on the edit screen
+5. Markup example when using `post_class();`
+6. Classic Editor Checkbox Toggle
 
 == Changelog ==
 
 = 3.0.0 =
 
-* Removed Yarn as package manager
+* Improved compatibility with the Block Editor and the enhancements it brings
 * Added npm as base package manager
-* Removed Gulp as build tool
 * Added ESLint for JS linting
 * Added Stylelint for CSS linting
 * Added EditorConfig for consistent coding styles
@@ -81,10 +82,15 @@ This snippet of code will fetch the 10 most recent posts that are featured.
 * Added Composer for PHP package management
 * Added wp-scripts for WordPress build scripts
 * Added webpack for JS module bundling
+* Added a new Featured Posts Variation of the Query Loop
+* Added the ability to filter teh Featured Posts Query Loop to only show featured posts
+* Added the ability to filter the Featured Posts Query Loop to show all posts excluding featured posts
+* Added the ability to filter the Featured Posts Query Loop to show all posts and show featured posts first (similar to sticky)
+* Added the ability to sort post lists by featured posts.
 * Removed Babel for js transpiling as it wasn't needed any more
-* Numerous bug fixes and improvements
-* Updated readme
-* Bunch of minor security updates within build process (non frontend facing)
+* Removed Yarn as package manager
+* Removed Gulp as build tool
+* Numerous bug fixes, minor security updates within build process (non frontend facing) and improvements
 
 = 2.2.0 =
 * Updated the build process

@@ -22,7 +22,8 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			add_action( 'widgets_init', array( $this, 'widgets_init' ) );
 
 			add_action( 'admin_init', array( $this, 'admin_init' ) );
-			add_action( 'rest_api_init', 'admin_init' );
+			add_action( 'admin_init', array( $this, 'register_api_settings' ) );
+			add_action( 'rest_api_init', array( $this, 'register_api_settings' ) );
 
 			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
 			add_action( 'save_post', array( $this, 'save_post' ) );
@@ -32,8 +33,11 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 
 			add_filter( 'post_class', array( $this, 'post_class' ), 10, 3 );
 
+
 			$this->doing_upgrades = false;
+
 		}
+
 
 		/**
 		 * @since 2.3.0
@@ -156,6 +160,25 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 
 		}
 
+		public function register_api_settings() {
+			register_setting(
+					'writing',
+					'pts_featured_post_types_settings',
+					[
+							'type'         => 'array',
+							'show_in_rest' => [
+								'schema' => [
+										'type' => 'array',
+										'items' => [
+												'type' => 'string',
+										],
+								],
+							],
+							'sanitize_callback' => [ $this, 'sanitize_settings' ],
+					]
+			);
+		}
+
 
 		/**
 		 * admin_init function.
@@ -166,16 +189,6 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 		public function admin_init() {
 			$this->check_for_updates();
 			$this->check_if_term_exists();
-
-			register_setting(
-				'writing',
-				'pts_featured_post_types_settings',
-				[
-					'type'              => 'array',
-					'show_in_rest'      => true,
-					'sanitize_callback' => [ $this, 'sanitize_settings' ],
-				]
-			);
 
 			// Add a section for the plugin's settings on the writing page.
 			add_settings_section( 'pts_featured_posts_settings_section', __( 'Featured Post Types', 'post-type-spotlight' ), array( $this, 'settings_section_text' ), 'writing' );
@@ -418,11 +431,11 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			if ( ! empty( $query->query_vars['meta_query'] ) ) {
 				foreach ( $query->query_vars['meta_query'] as $key => $meta_query ) {
 					if ( ! empty( $meta_query['key'] ) && '_pts_featured_post' === $meta_query['key'] ) {
-						$query->query_vars['tax_query'][] = array(
-							'taxonomy' => 'pts_feature_tax',
-							'field'    => 'slug',
-							'terms'    => array( 'featured' ),
-						);
+						$query->query_vars['tax_query'][] = [
+								'taxonomy' => 'pts_feature_tax',
+								'field'    => 'slug',
+								'terms'    => [ 'featured' ],
+						];
 
 						unset( $query->query_vars['meta_query'][ $key ] );
 						_deprecated_argument( 'WP_Query()', '2.0 of the Post Type Spotlight plugin', 'The _pts_featured_post post meta field has been removed. Please see https://wordpress.org/plugins/post-type-spotlight/faq/ for more info.' );

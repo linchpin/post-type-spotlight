@@ -12,15 +12,25 @@ Easily allows you to designate posts, pages, attachments and custom post types a
 
 ## Description ##
 
-The plugin displays a checkbox in the publish meta box to feature a post. The checkbox only appears on admin selected post types which can be selected in the Settings->Writing screen.
+The plugin displays a toggle within the publish area to feature a post. The toggle only appears on admin selected post types which can be selected in the `Settings -> Writing` screen.
 
-When a post is designated as featured:
+**When a post is designated as featured:**
 
-*   It receives 'featured' and 'featured-{$posttype}' classes via the post_class filter.
-*   Shows featured posts as such in the post type's admin screen
-*   Assigns a post a hidden taxonomy term (featured) that can easily be queried.
+*   It receives `featured` and `featured-{$posttype}` classes via the post_class filter.
+*   Shows featured ⭐️ in the post type's admin post list screen.
+*   Assigns the post a hidden taxonomy term (featured) that can easily be queried via the `pts_feature_tax` taxonomy.
 
-*Note: For the plugin to work on attachments, you must be using 3.5 or above. All other features will work on 3.1.0 and up.*
+* Note: For the plugin to work on attachments, you must be using 3.5 or above. All other features will work on 3.1.0 and up.*
+
+## New in Version 3.0.0 ##
+
+* Better compatibility with the Block Editor and the enhancements it brings.
+* Added a new Featured Posts Variation of the Query Loop
+* Added the ability to filter teh Featured Posts Query Loop to only show featured posts
+* Added the ability to filter the Featured Posts Query Loop to show all posts excluding featured posts
+* Added the ability to filter the Featured Posts Query Loop to show all posts and show featured posts first (similar to sticky)
+* Updated all dependencies
+* Added the ability to sort post lists by featured posts.
 
 ## Installation ##
 
