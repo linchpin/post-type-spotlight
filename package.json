@@ -18,6 +18,7 @@
   "author": "Linchpin <sayhi@linchpin.com>",
   "license": "GPL",
   "devDependencies": {
+    "resolve-url-loader": "^5.0.0",
     "@wordpress/scripts": "^26.11.0",
     "mini-css-extract-plugin": "^2.7.6",
     "webpack": "5.88.2",
