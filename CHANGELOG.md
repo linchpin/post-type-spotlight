@@ -1,5 +1,12 @@
 # Changelog #
 
+## [3.0.0](https://github.com/linchpin/post-type-spotlight/compare/v3.0.0...v3.0.0) (2023-08-18)
+
+
+### Bug Fixes 🐛
+
+* **NO-JIRA:** Added missing dependency ([20345d1](https://github.com/linchpin/post-type-spotlight/commit/20345d1e16b37cefd78d41bbbd2c1cd2d53a527b))
+
 ## [3.0.0](https://github.com/linchpin/post-type-spotlight/compare/v2.2.0...v3.0.0) (2023-08-18)
 
 
