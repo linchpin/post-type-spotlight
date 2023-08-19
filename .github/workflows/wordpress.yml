@@ -1,35 +1,12 @@
 on:
-  push:
-    branches:
-      - main
+  release:
+    types: [published]
 
-permissions:
-  contents: write
-  pull-requests: write
-
-name: release-please
+name: Deploy to WordPress.org
 
 jobs:
-  release-please:
-    if: github.event_name != 'pull_request' && github.event.pull_request.merged != true
-    runs-on: ubuntu-latest
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-    steps:
-      - uses: google-github-actions/release-please-action@v3
-        id: release
-        with:
-          release-type: php
-          bump-minor-pre-major: true
-          token: ${{ secrets.GH_BOT_TOKEN }}
-          versioning-strategy: always-bump-patch
-          command: manifest
-          package-name: post-type-spotlight
-
   build:
-    needs: release-please
     runs-on: ubuntu-latest
-    if: ${{ needs.release-please.outputs.release_created }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -75,17 +52,14 @@ jobs:
           chmod +x ./.deployment/cleanup.sh
           sh ./.deployment/cleanup.sh;
 
-      - name: Create Sync Zip
-        run: |
-          cd ./zip
-          zip -r ../post-type-spotlight.zip ./
-          cd ../
+      - name: WordPress Plugin Deploy
+        uses: 10up/action-wordpress-plugin-deploy@2.1.1
+        env:
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
 
-      - name: Upload files to a GitHub release
-        uses: svenstaro/upload-release-action@2.7.0
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: post-type-spotlight.zip
-          tag: ${{ steps.get_version.outputs.tag }}
-          name: post-type-spotlight.zip
-          overwrite: true
+      - name: WordPress.org plugin asset/readme update
+        uses: 10up/action-wordpress-plugin-asset-update@stable
+        env:
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
