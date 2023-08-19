@@ -64,12 +64,6 @@ jobs:
           npm install && npm run build
           rm -rf node_modules
 
-      - name: Build Frontend Scripts
-        run: |
-          cd ./frontend/
-          npm install && npm run build
-          rm -rf node_modules
-
       - name: Build Blocks
         run: |
           cd ./blocks/
