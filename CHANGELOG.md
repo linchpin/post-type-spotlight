@@ -1,5 +1,12 @@
 # Changelog #
 
+## [3.0.0](https://github.com/linchpin/post-type-spotlight/compare/v3.0.0...v3.0.0) (2023-08-19)
+
+
+### Changes to Existing Features 💅
+
+* **NO-JIRA:** Improve build process, remove unneeded step ([1918db7](https://github.com/linchpin/post-type-spotlight/commit/1918db79f618f22b450229d4efc9d5feb28cdbea))
+
 ## [3.0.0](https://github.com/linchpin/post-type-spotlight/compare/v3.0.0...v3.0.0) (2023-08-18)
 
 
