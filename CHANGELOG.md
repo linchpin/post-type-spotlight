@@ -1,5 +1,12 @@
 # Changelog #
 
+## [3.0.0](https://github.com/linchpin/post-type-spotlight/compare/v3.0.0...v3.0.0) (2023-08-19)
+
+
+### Miscellaneous Chores 🧹
+
+* **NO-JIRA:** Updated .distignore ([599a934](https://github.com/linchpin/post-type-spotlight/commit/599a9343e3bb97d5cf0e765b18054a98ade4107d))
+
 ## 2.2.0 ##
 * Updated the build process
 * Updated PHPCS and WPCS
