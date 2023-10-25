@@ -31,7 +31,7 @@
     "composer/installers": "^v2.2.0"
   },
   "require-dev": {
-    "phpseclib/phpseclib": "3.0.21",
+    "phpseclib/phpseclib": "3.0.33",
     "linchpin/phpdocumentor-template-markdown": "^1.0",
     "dealerdirect/phpcodesniffer-composer-installer": "^1.0.0",
     "wp-coding-standards/wpcs": "^2.3.0",
