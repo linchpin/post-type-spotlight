@@ -266,37 +266,50 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 		 * @return void
 		 */
 		public function block_scripts() {
-			$script_asset_path = POST_TYPE_SPOTLIGHT_PATH . 'blocks/build/index.asset.php';
 
-			if ( ! file_exists( $script_asset_path ) ) {
-				throw new \Error(
-					$script_asset_path . ' Missing: You need to run `npm start` or `npm run build` for the "post-type-spotlight/blocks" script first.'
-				);
+			$post_type = false;
+
+			if ( is_admin() ) {
+				if ( isset($_GET['post'])) {
+					$post_id = $_GET['post'];
+					$post_type = get_post_type($post_id);
+				} elseif ( isset( $_GET['post_type'] ) ) {
+					$post_type = $_GET['post_type'];
+				}
+		
+				if ( $post_type && use_block_editor_for_post_type($post_type)) {
+			
+					$script_asset_path = POST_TYPE_SPOTLIGHT_PATH . 'blocks/build/index.asset.php';
+
+					if ( ! file_exists( $script_asset_path ) ) {
+						throw new \Error(
+							$script_asset_path . ' Missing: You need to run `npm start` or `npm run build` for the "post-type-spotlight/blocks" script first.'
+						);
+					}
+
+					$index_js      = POST_TYPE_SPOTLIGHT_PLUGIN_URL . 'blocks/build/index.js';
+
+					$script_asset = require $script_asset_path;
+
+					$dependencies = array_merge(
+						$script_asset['dependencies'],
+						[
+							'wp-edit-post',
+						]
+					);
+
+					wp_register_script(
+						'post-type-spotlight-block-editor',
+						$index_js,
+						$dependencies,
+						$script_asset['version'],
+						true
+					);
+
+					wp_enqueue_script( 'post-type-spotlight-block-editor' );
+				}
 			}
-
-			$index_js      = POST_TYPE_SPOTLIGHT_PLUGIN_URL . 'blocks/build/index.js';
-
-			$script_asset = require $script_asset_path;
-
-			$dependencies = array_merge(
-				$script_asset['dependencies'],
-				[
-					'wp-edit-post',
-				]
-			);
-
-			wp_register_script(
-				'post-type-spotlight-block-editor',
-				$index_js,
-				$dependencies,
-				$script_asset['version'],
-				true
-			);
-
-			wp_enqueue_script( 'post-type-spotlight-block-editor' );
-
 		}
-
 
 		/**
 		 * Registers the block using the metadata loaded from the `block-{type}.json` file.
