@@ -1,6 +1,6 @@
 {
   "name": "post-type-spotlight",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Easily allows you to designate posts, pages, attachments and custom post types as featured.",
   "main": "webpack.config.js",
   "scripts": {
