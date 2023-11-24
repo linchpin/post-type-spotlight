@@ -42,7 +42,7 @@
     "friendsofphp/php-cs-fixer": "^3.37.1",
     "phpcompatibility/phpcompatibility-wp": "2.1.4",
     "automattic/phpcs-neutron-ruleset": "^3.4",
-    "saggre/phpdocumentor-markdown": "^0.1.3"
+    "saggre/phpdocumentor-markdown": "^0.1.4"
   },
   "scripts": {
     "lint": "phpcs .",
