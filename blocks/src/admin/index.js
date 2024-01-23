@@ -19,11 +19,6 @@ const Admin = () => {
     postTerms = [ postTerms ];
   }
 
-  featuredTerm = featuredTerm ? featuredTerm[0]?.id : null;
-  const isFeatured  = featuredTerm && (postTerms.includes( featuredTerm ) || postTerms === featuredTerm );
-
-  const { editEntityRecord } = useDispatch( 'core' );
-
   const [ postTypeSpotlightSettings ] = useEntityProp( 'root', 'site', 'pts_featured_post_types_settings' );
 
   // If the post type is not enabled in our writing settings
@@ -31,6 +26,11 @@ const Admin = () => {
   if ( ! postTypeSpotlightSettings || ( postTypeSpotlightSettings && postTypeSpotlightSettings.indexOf( postType ) === -1 ) ) {
     return null;
   }
+
+  featuredTerm = featuredTerm ? featuredTerm[0]?.id : null;
+  const isFeatured  = featuredTerm && (postTerms.includes( featuredTerm ) || postTerms === featuredTerm );
+
+  const { editEntityRecord } = useDispatch( 'core' );
 
   const onUpdateFeatured = ( newValue ) => {
     const updatedTerms = newValue
