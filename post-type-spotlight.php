@@ -6,7 +6,7 @@
  * Description: Allows admin chosen post types to have a featured post check box on the edit screen. Also adds appropriate classes to front end post display, and allows featured posts to be queried via a taxonomy query.
  * Requires at least: 5.1
  * x-release-please-start-version
- * Version: 3.0.1
+ * Version: 3.0.2
  * x-release-please-end
  * Author: Linchpin & Jonathan Desrosiers
  * Author URI: https://linchpin.com/?utm_source=post-type-spotlight&utm_medium=plugin-admin-page&utm_campaign=wp-plugin
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! defined( 'POST_TYPE_SPOTLIGHT_VERSION' ) ) {
 	// x-release-please-start-version
-	define( 'POST_TYPE_SPOTLIGHT_VERSION', '3.0.1' );
+	define( 'POST_TYPE_SPOTLIGHT_VERSION', '3.0.2' );
 	// x-release-please-end
 }
 
