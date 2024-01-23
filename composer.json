@@ -31,11 +31,11 @@
     "composer/installers": "^v2.2.0"
   },
   "require-dev": {
-    "phpseclib/phpseclib": "3.0.33",
+    "phpseclib/phpseclib": "3.0.34",
     "linchpin/phpdocumentor-template-markdown": "^1.0",
     "dealerdirect/phpcodesniffer-composer-installer": "^1.0.0",
     "wp-coding-standards/wpcs": "^2.3.0",
-    "squizlabs/php_codesniffer": "^3.7.2",
+    "squizlabs/php_codesniffer": "^3.8.1",
     "phpcompatibility/php-compatibility": "^9.3.5",
     "php-parallel-lint/php-parallel-lint": "^v1.3.2",
     "php-parallel-lint/php-console-highlighter": "^1.0.0",
