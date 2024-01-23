@@ -33,6 +33,6 @@
     "email": "sayhi@linchpin.com"
   },
   "engines": {
-    "node": ">= 20.9.0"
+    "node": ">= 20.11.0"
   }
 }
