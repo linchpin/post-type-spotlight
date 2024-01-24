@@ -1,6 +1,6 @@
 ![Post Type Spotlight](https://github.com/linchpin/post-type-spotlight/blob/master/.wordpress-org/banner-1544x500.png?raw=true)
 
-![Build Status](https://github.com/linchpin/post-type-spotlight/workflows/release-please/badge.svg?raw=true) ![Maintainability](https://api.codeclimate.com/v1/badges/571cf2f2437f6fe80c1a/maintainability)
+![Build Status](https://github.com/linchpin/post-type-spotlight/workflows/release-please/badge.svg?raw=true)
 
 <!-- x-release-please-start-version -->
 ## Latest Release: 3.0.2
