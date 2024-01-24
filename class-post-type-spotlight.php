@@ -29,7 +29,6 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			add_action( 'save_post', array( $this, 'save_post' ) );
 			add_action( 'edit_attachment', array( $this, 'save_post' ) );
 			add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ), 999 );
-			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_styles' ) );
 
 			add_filter( 'post_class', array( $this, 'post_class' ), 10, 3 );
 
@@ -542,25 +541,5 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			return $classes;
 		}
 
-		/**
-		 * Enqueue our admin styles.
-		 *
-		 * @since 2.2.0
-		 *
-		 * @param string $hook The hook.
-		 */
-		public function admin_enqueue_styles( $hook ) {
-
-			if ( ! in_array( $hook, array( 'post-new.php', 'post.php', 'edit.php' ), true ) ) {
-				return;
-			}
-
-			wp_enqueue_style(
-				'post-type-spotlight-admin-global',
-				POST_TYPE_SPOTLIGHT_PLUGIN_URL . 'css/admin-post-type-spotlight.css',
-				array(),
-				POST_TYPE_SPOTLIGHT_VERSION
-			);
-		}
 	}
 }
