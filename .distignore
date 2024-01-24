@@ -30,4 +30,7 @@ blocks/package-lock.json
 .deployment
 zip
 src
+DOCKER_ENV
+output.log
+docker_tagg
 
