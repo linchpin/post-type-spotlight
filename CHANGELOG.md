@@ -1,5 +1,12 @@
 # Changelog #
 
+## [3.0.3](https://github.com/linchpin/post-type-spotlight/compare/v3.0.2...v3.0.3) (2024-01-24)
+
+
+### Miscellaneous Chores 🧹
+
+* **NO-JIRA:** Minor readme update ([7110a8f](https://github.com/linchpin/post-type-spotlight/commit/7110a8f2cefb5a3cce7f88d6e740158080eeaa13))
+
 ## [3.0.2](https://github.com/linchpin/post-type-spotlight/compare/v3.0.1...v3.0.2) (2024-01-23)
 
 
