@@ -3,7 +3,7 @@
 ![Build Status](https://github.com/linchpin/post-type-spotlight/workflows/release-please/badge.svg?raw=true)
 
 <!-- x-release-please-start-version -->
-## Latest Release: 3.0.2
+## Latest Release: 3.0.3
 <!-- x-release-please-end -->
 
 # Post Type Spotlight #
