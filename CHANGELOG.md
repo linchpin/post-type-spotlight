@@ -1,5 +1,26 @@
 # Changelog #
 
+## [3.0.2](https://github.com/linchpin/post-type-spotlight/compare/v3.0.1...v3.0.2) (2024-01-23)
+
+
+### Bug Fixes 🐛
+
+* **#95:** check if current post type supports PTS sooner ([e8b2863](https://github.com/linchpin/post-type-spotlight/commit/e8b2863cc4f5e8a94729d3cf760e38fc0417a001))
+* **deps:** update npm frontend ([e72ab27](https://github.com/linchpin/post-type-spotlight/commit/e72ab270883e76d799c2b5684e7b3ca59885691a))
+
+
+### Miscellaneous Chores 🧹
+
+* **deps-dev:** bump follow-redirects from 1.15.2 to 1.15.4 ([a99d3f1](https://github.com/linchpin/post-type-spotlight/commit/a99d3f1115f8a142cedd4a603a214e51fd0842e1))
+* **deps-dev:** bump follow-redirects from 1.15.2 to 1.15.4 in /blocks ([98a706d](https://github.com/linchpin/post-type-spotlight/commit/98a706d09135b24bec58a1c724dbfac41e6d686d))
+* **deps-dev:** bump phpseclib/phpseclib from 3.0.33 to 3.0.34 ([aa9b5ea](https://github.com/linchpin/post-type-spotlight/commit/aa9b5ea032a16f3fa10c3990b95b44379f68d606))
+* **deps:** update dependency friendsofphp/php-cs-fixer to ^3.48.0 ([acf6540](https://github.com/linchpin/post-type-spotlight/commit/acf6540d98b69bdf16c31650a88968fa0c8122e4))
+* **deps:** update dependency phpseclib/phpseclib to v3.0.34 [security] ([f348a5c](https://github.com/linchpin/post-type-spotlight/commit/f348a5c6c3a73c3cf093d398e3233a6870660283))
+* **deps:** update dependency saggre/phpdocumentor-markdown to ^0.1.4 ([f760838](https://github.com/linchpin/post-type-spotlight/commit/f760838293c7104108ba404b1f70fce70df08378))
+* **deps:** update dependency squizlabs/php_codesniffer to ^3.8.1 ([4c4ffa1](https://github.com/linchpin/post-type-spotlight/commit/4c4ffa1c4a7e8981341b5ed481cd248f6b8e2442))
+* **deps:** update npm dev dependencies ([96e2ea2](https://github.com/linchpin/post-type-spotlight/commit/96e2ea28de71fe3e01cbe74158daf8536ad42c5e))
+* **deps:** update rtcamp/action-phpcs-code-review action to v3.0.1 ([17acced](https://github.com/linchpin/post-type-spotlight/commit/17accedf0af04197d0803e653bf035c413562205))
+
 ## [3.0.1](https://github.com/linchpin/post-type-spotlight/compare/v3.0.0...v3.0.1) (2023-11-02)
 
 
