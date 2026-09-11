@@ -28,8 +28,9 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
 			add_action( 'save_post', array( $this, 'save_post' ) );
 			add_action( 'edit_attachment', array( $this, 'save_post' ) );
+			add_action( 'save_post', array( $this, 'save_quick_edit' ) );
 			add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ), 999 );
-			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_styles' ) );
+			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 
 			add_filter( 'post_class', array( $this, 'post_class' ), 10, 3 );
 
@@ -227,6 +228,13 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 						add_filter( 'views_edit-' . $pt, array( $this, 'views_addition' ) );
 					}
 				}
+
+				add_action( 'pre_get_posts', array( $this, 'filter_featured_view' ) );
+
+				// The media list table has no Quick Edit, so attachments are skipped.
+				if ( array_diff( (array) $featured_pts, array( 'attachment' ) ) ) {
+					add_action( 'quick_edit_custom_box', array( $this, 'quick_edit_custom_box' ), 10, 2 );
+				}
 			}
 
 
@@ -403,10 +411,122 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 		public function manage_posts_custom_column( $column, $post_id ) {
 			switch ( $column ) {
 				case 'lp-featured':
-					if ( has_term( 'featured', 'pts_feature_tax', $post_id ) ) {
+					$featured = has_term( 'featured', 'pts_feature_tax', $post_id );
+
+					if ( $featured ) {
 						echo '<span class="dashicons dashicons-star-filled"></span>';
 					}
+
+					// Read by js/admin-quick-edit.js to seed the Quick Edit checkbox.
+					printf( '<span class="pts-featured-state hidden" data-pts-featured="%d"></span>', $featured ? 1 : 0 );
 					break;
+			}
+		}
+
+		/**
+		 * Render the featured checkbox inside the Quick Edit row.
+		 *
+		 * @since 3.1.0
+		 *
+		 * @param string $column_name The column being rendered.
+		 * @param string $post_type   The post type of the list table.
+		 * @return void
+		 */
+		public function quick_edit_custom_box( $column_name, $post_type ) {
+			if ( 'lp-featured' !== $column_name ) {
+				return;
+			}
+
+			$settings = get_option( 'pts_featured_post_types_settings', array() );
+
+			if ( ! in_array( $post_type, (array) $settings, true ) ) {
+				return;
+			}
+
+			$pt = get_post_type_object( $post_type );
+
+			wp_nonce_field( '_pts_featured_post_nonce', '_pts_featured_post_noncename' );
+			?>
+			<fieldset class="inline-edit-col-right">
+				<div class="inline-edit-col">
+					<label class="alignleft lp-featured-post">
+						<input type="checkbox" name="_pts_featured_post" id="_pts_featured_post" value="1" />
+						<span class="checkbox-title"><?php echo esc_html( apply_filters( 'pts_featured_checkbox_text', 'Feature this ' . $pt->labels->singular_name, null ) ); ?></span>
+					</label>
+				</div>
+			</fieldset>
+			<?php
+		}
+
+		/**
+		 * Save the featured state submitted from the Quick Edit row.
+		 *
+		 * Inline edits are saved over admin-ajax.php, which save_post() ignores,
+		 * so they need a handler of their own.
+		 *
+		 * @since 3.1.0
+		 *
+		 * @param mixed $post_id The post being saved.
+		 * @return void
+		 */
+		public function save_quick_edit( $post_id ) {
+			if ( ! isset( $_POST['action'] ) || 'inline-save' !== $_POST['action'] ) {
+				return;
+			}
+
+			if ( wp_is_post_revision( $post_id ) || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ) {
+				return;
+			}
+
+			if ( ! current_user_can( 'edit_post', $post_id ) ) {
+				return;
+			}
+
+			if ( ! isset( $_POST['_pts_featured_post_noncename'] ) || ! wp_verify_nonce( sanitize_key( $_POST['_pts_featured_post_noncename'] ), '_pts_featured_post_nonce' ) ) {
+				return;
+			}
+
+			$settings = get_option( 'pts_featured_post_types_settings', array() );
+
+			if ( ! in_array( get_post_type( $post_id ), (array) $settings, true ) ) {
+				return;
+			}
+
+			$this->set_post_featured( $post_id, ! empty( $_POST['_pts_featured_post'] ) );
+		}
+
+		/**
+		 * Add or remove the featured term for a post, leaving any other
+		 * pts_feature_tax terms on the post untouched.
+		 *
+		 * @since 3.1.0
+		 *
+		 * @param mixed $post_id  The post ID.
+		 * @param bool  $featured Whether the post should be featured.
+		 * @return void
+		 */
+		public function set_post_featured( $post_id, $featured ) {
+			delete_post_meta( $post_id, '_pts_featured_post' );
+
+			if ( $featured ) {
+				wp_set_object_terms( $post_id, array( 'featured' ), 'pts_feature_tax', true );
+				return;
+			}
+
+			$current_terms = wp_get_object_terms( $post_id, 'pts_feature_tax', array( 'fields' => 'slugs' ) );
+
+			if ( is_wp_error( $current_terms ) ) {
+				return;
+			}
+
+			if ( ( $key = array_search( 'featured', $current_terms, true ) ) !== false ) { // phpcs:ignore WordPress.CodeAnalysis.AssignmentInCondition.Found
+				unset( $current_terms[ $key ] );
+			}
+
+			if ( empty( $current_terms ) ) {
+				wp_set_object_terms( $post_id, null, 'pts_feature_tax', false );
+			} else {
+				wp_set_object_terms( $post_id, array_values( $current_terms ), 'pts_feature_tax', false );
 			}
 		}
 
@@ -442,6 +562,48 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 					}
 				}
 			}
+		}
+
+		/**
+		 * Filter an admin list table down to featured posts for the Featured view.
+		 *
+		 * pts_feature_tax is registered without a query var, and wp_edit_posts_query()
+		 * only forwards a fixed set of arguments to WP_Query, so the request argument
+		 * built by views_addition() has to be turned into a tax query by hand.
+		 *
+		 * @since 3.1.0
+		 *
+		 * @param WP_Query $query The query about to run.
+		 * @return void
+		 */
+		public function filter_featured_view( $query ) {
+			if ( ! is_admin() || ! $query->is_main_query() ) {
+				return;
+			}
+
+			if ( empty( $_GET['pts_feature_tax'] ) || 'featured' !== $_GET['pts_feature_tax'] ) {
+				return;
+			}
+
+			$settings = get_option( 'pts_featured_post_types_settings', array() );
+
+			if ( ! in_array( $query->get( 'post_type' ), (array) $settings, true ) ) {
+				return;
+			}
+
+			$tax_query = $query->get( 'tax_query' );
+
+			if ( empty( $tax_query ) ) {
+				$tax_query = array();
+			}
+
+			$tax_query[] = array(
+				'taxonomy' => 'pts_feature_tax',
+				'field'    => 'slug',
+				'terms'    => array( 'featured' ),
+			);
+
+			$query->set( 'tax_query', $tax_query );
 		}
 
 		/**
@@ -502,25 +664,7 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			}
 
 			if ( isset( $_POST['_pts_featured_post_noncename'] ) && wp_verify_nonce( $_POST['_pts_featured_post_noncename'], '_pts_featured_post_nonce' ) ) {
-
-				if ( isset( $_POST['_pts_featured_post'] ) && ! empty( $_POST['_pts_featured_post'] ) ) {
-					delete_post_meta( $post_id, '_pts_featured_post' );
-					wp_set_object_terms( $post_id, array( 'featured' ), 'pts_feature_tax', true );
-				} else {
-					delete_post_meta( $post_id, '_pts_featured_post' );
-
-					$current_terms = wp_get_object_terms( $post_id, 'pts_feature_tax', array( 'fields' => 'slugs' ) );
-
-					if ( ( $key = array_search( 'featured', $current_terms, true ) ) !== false ) {
-						unset( $current_terms[ $key ] );
-					}
-
-					if ( empty( $current_terms ) || is_wp_error( $current_terms ) ) {
-						wp_set_object_terms( $post_id, null, 'pts_feature_tax', false );
-					} else {
-						wp_set_object_terms( $post_id, $current_terms, 'pts_feature_tax', false );
-					}
-				}
+				$this->set_post_featured( $post_id, ! empty( $_POST['_pts_featured_post'] ) );
 			}
 		}
 
@@ -543,23 +687,24 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 		}
 
 		/**
-		 * Enqueue our admin styles.
+		 * Enqueue our admin scripts.
 		 *
-		 * @since 2.2.0
+		 * @since 3.1.0
 		 *
 		 * @param string $hook The hook.
 		 */
-		public function admin_enqueue_styles( $hook ) {
+		public function admin_enqueue_scripts( $hook ) {
 
-			if ( ! in_array( $hook, array( 'post-new.php', 'post.php', 'edit.php' ), true ) ) {
+			if ( 'edit.php' !== $hook ) {
 				return;
 			}
 
-			wp_enqueue_style(
-				'post-type-spotlight-admin-global',
-				POST_TYPE_SPOTLIGHT_PLUGIN_URL . 'css/admin-post-type-spotlight.css',
-				array(),
-				POST_TYPE_SPOTLIGHT_VERSION
+			wp_enqueue_script(
+				'post-type-spotlight-quick-edit',
+				POST_TYPE_SPOTLIGHT_PLUGIN_URL . 'js/admin-quick-edit.js',
+				array( 'jquery', 'inline-edit-post' ),
+				POST_TYPE_SPOTLIGHT_VERSION,
+				true
 			);
 		}
 	}

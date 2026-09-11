@@ -16,7 +16,7 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 
 			add_action( 'init', [ $this, 'filter_rest_query' ] );
 			add_action( 'init', [ $this, 'block_init' ] );
-			add_action( 'init', [ $this, 'block_scripts' ] );
+			add_action( 'enqueue_block_editor_assets', [ $this, 'block_scripts' ] );
 
 			add_filter( 'pre_render_block', [ $this, 'pre_render_block' ], 999, 3 );
 
@@ -268,47 +268,36 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 		public function block_scripts() {
 
 			$post_type = false;
-
-			if ( is_admin() ) {
-				if ( isset($_GET['post'])) {
-					$post_id = $_GET['post'];
-					$post_type = get_post_type($post_id);
-				} elseif ( isset( $_GET['post_type'] ) ) {
-					$post_type = $_GET['post_type'];
-				}
-		
-				if ( $post_type && use_block_editor_for_post_type($post_type)) {
 			
-					$script_asset_path = POST_TYPE_SPOTLIGHT_PATH . 'blocks/build/index.asset.php';
+			$script_asset_path = POST_TYPE_SPOTLIGHT_PATH . 'blocks/build/index.asset.php';
 
-					if ( ! file_exists( $script_asset_path ) ) {
-						throw new \Error(
-							$script_asset_path . ' Missing: You need to run `npm start` or `npm run build` for the "post-type-spotlight/blocks" script first.'
-						);
-					}
-
-					$index_js      = POST_TYPE_SPOTLIGHT_PLUGIN_URL . 'blocks/build/index.js';
-
-					$script_asset = require $script_asset_path;
-
-					$dependencies = array_merge(
-						$script_asset['dependencies'],
-						[
-							'wp-edit-post',
-						]
-					);
-
-					wp_register_script(
-						'post-type-spotlight-block-editor',
-						$index_js,
-						$dependencies,
-						$script_asset['version'],
-						true
-					);
-
-					wp_enqueue_script( 'post-type-spotlight-block-editor' );
-				}
+			if ( ! file_exists( $script_asset_path ) ) {
+				throw new \Error(
+					$script_asset_path . ' Missing: You need to run `npm start` or `npm run build` for the "post-type-spotlight/blocks" script first.'
+				);
 			}
+
+			$index_js      = POST_TYPE_SPOTLIGHT_PLUGIN_URL . 'blocks/build/index.js';
+
+			$script_asset = require $script_asset_path;
+
+			$dependencies = array_merge(
+				$script_asset['dependencies'],
+				[
+					'wp-edit-post',
+				]
+			);
+
+			wp_register_script(
+				'post-type-spotlight-block-editor',
+				$index_js,
+				$dependencies,
+				$script_asset['version'],
+				true
+			);
+
+			wp_enqueue_script( 'post-type-spotlight-block-editor' );
+					
 		}
 
 		/**
