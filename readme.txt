@@ -1,8 +1,9 @@
 === Post Type Spotlight ===
-Contributors: linchpin_agency, desrosj, aware
+Contributors: linchpin_agency, desrosj, aware, maxinacube, fischfood
 Tags: featured, post type, sticky, posts, custom post types
-Requires at least: 5.1.0
-Tested up to: 6.3
+Requires at least: 6.1
+Tested up to: 7.1
+Requires PHP: 7.0
 x-release-please-start-version
 Stable tag: 3.0.3
 x-release-please-end
