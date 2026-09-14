@@ -24,7 +24,6 @@
   },
   "license": "GPL-2.0-or-later",
   "type": "wordpress-plugin",
-  "private": true,
   "require": {
     "php": ">=7.4",
     "composer/installers": "^2.2.0"
