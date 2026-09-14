@@ -1,0 +1,55 @@
+name: JavaScript
+
+# Hand-rolled: linchpin/actions has no JS reusable yet, so every repo carries
+# its own. Keep in step with the other plugin repos if one lands upstream.
+
+on:
+  pull_request:
+    paths:
+      - 'blocks/src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/js.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint JS and styles
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint JavaScript
+        run: npm run lint:js
+
+      - name: Lint styles
+        run: npm run lint:css
+
+      - name: Verify the build produces the assets the plugin loads
+        # blocks/build is committed, but a broken source tree would ship the
+        # stale copy rather than fail. Build and check PHP's entry points.
+        run: |
+          set -e
+          npm run build
+          for asset in blocks/build/index.js blocks/build/index.asset.php; do
+            if [ ! -s "$asset" ]; then
+              echo "::error::Missing or empty build asset: $asset"
+              exit 1
+            fi
+          done
+          echo "Build output present"

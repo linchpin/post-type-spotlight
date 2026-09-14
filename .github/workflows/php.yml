@@ -1,0 +1,49 @@
+name: PHP
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.php'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'phpcs.xml.dist'
+      - '.github/workflows/php.yml'
+  pull_request:
+    paths:
+      - '**.php'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'phpcs.xml.dist'
+      - '.github/workflows/php.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Parse lint plus branch-scoped PHPCS. Body lives in linchpin/actions.
+  #
+  # release-please branches carry only version strings and a CHANGELOG, and
+  # every commit in them already passed on its own pull request. Tests the
+  # branch rather than github.actor, which becomes whoever clicked a re-run.
+  php:
+    if: >-
+      !startsWith(github.head_ref || github.ref_name, 'release-please--')
+    uses: linchpin/actions/.github/workflows/php-checks.yml@v4
+    secrets: inherit
+    with:
+      # The toolchain runs on 8.2; the plugin's own floor is 7.4 and is
+      # enforced by PHPCompatibility through testVersion in phpcs.xml.dist.
+      php_version: '8.2'
+
+      # No phpstan.neon and no test suite in this repo yet. Both are set
+      # explicitly so the gap is a visible decision rather than a silent
+      # startup failure when the reusable looks for a script that is not there.
+      run_phpstan: false
+      run_phpunit: false

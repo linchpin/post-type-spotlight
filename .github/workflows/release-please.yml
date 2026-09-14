@@ -1,3 +1,5 @@
+name: Release
+
 on:
   push:
     branches:
@@ -7,8 +9,6 @@ permissions:
   contents: write
   pull-requests: write
 
-name: release-please
-
 jobs:
   release-please:
     if: github.event_name != 'pull_request' && github.event.pull_request.merged != true
@@ -16,15 +16,10 @@ jobs:
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
     steps:
-      - uses: google-github-actions/release-please-action@v3
+      - uses: googleapis/release-please-action@v4
         id: release
         with:
-          release-type: php
-          bump-minor-pre-major: true
           token: ${{ secrets.GH_BOT_TOKEN }}
-          versioning-strategy: always-bump-patch
-          command: manifest
-          package-name: post-type-spotlight
 
   build:
     needs: release-please
@@ -32,60 +27,62 @@ jobs:
     if: ${{ needs.release-please.outputs.release_created }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Get Version From Tag
         id: get_version
-        uses: actions-ecosystem/action-get-latest-tag@v1.6.0
+        uses: linchpin/action-get-latest-tag@v2.0.0
         with:
           semver_only: true
 
-      - name: Latest Version
-        id: latest_version
-        run: |
-          TAG=${{ steps.get_version.outputs.tag }}
-          echo "VERSION=${TAG#v}" >> $GITHUB_OUTPUT
-
-      - name: Cache Composer dependencies
-        uses: actions/cache@v3
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
-          path: /tmp/composer-cache
-          key: ${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
+          php-version: '8.2'
+          coverage: none
+          tools: composer:v2
 
-      - name: Composer Install
-        uses: php-actions/composer@v6
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          working_dir: ./
-          dev: no
-          php_version: 7.4
+          node-version-file: .nvmrc
+          cache: npm
 
-      - name: Build Base Plugin Assets
+      # `npm ci` rather than `npm install`: a release artifact must come from
+      # the lockfile, not from whatever the registry resolves on the day it is
+      # cut.
+      - name: Build plugin assets
         run: |
-          npm install && npm run build
-          rm -rf node_modules
+          npm ci
+          npm run build
 
-      - name: Build Blocks
+      - name: Verify the build produced the assets the plugin loads
         run: |
-          cd ./blocks/
-          npm install && npm run build
-          rm -rf node_modules
+          set -e
+          for asset in blocks/build/index.js blocks/build/index.asset.php; do
+            if [ ! -s "$asset" ]; then
+              echo "::error::Missing or empty build asset: $asset"
+              exit 1
+            fi
+          done
+          echo "Build output present"
 
-      - name: Clean Build Files/Folders
-        run: |
-          chmod +x ./.deployment/cleanup.sh
-          sh ./.deployment/cleanup.sh;
+      # Same script plugin-check.yml builds against, so the release zip and the
+      # checked package cannot drift apart.
+      - name: Build the distributable
+        run: bash scripts/build.sh
 
-      - name: Create Sync Zip
+      - name: Create the release zip
         run: |
-          cd ./zip
-          zip -r ../post-type-spotlight.zip ./
-          cd ../
+          cd build
+          zip -r ../post-type-spotlight.zip ./post-type-spotlight
+          cd ..
 
       - name: Upload files to a GitHub release
-        uses: svenstaro/upload-release-action@2.7.0
+        uses: svenstaro/upload-release-action@2.11.2
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          repo_token: ${{ secrets.GH_BOT_TOKEN }}
           file: post-type-spotlight.zip
           tag: ${{ steps.get_version.outputs.tag }}
-          name: post-type-spotlight.zip
+          asset_name: post-type-spotlight.zip
           overwrite: true
