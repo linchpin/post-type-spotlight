@@ -1,8 +1,25 @@
-# ignore node dependency directories
+# Dependencies
 node_modules/
 vendor/
 
-# ignore log files and databases
+# Build output. blocks/build IS committed - the plugin loads it at runtime and
+# .distignore does not exclude it - so it is deliberately absent here.
+build/
+test-results/
+zip/
+
+# Tool caches and reports
+.phpcs.cache
+phpcs.cache
+phpcs-report.xml
+.phpunit.result.cache
+.php-cs-fixer.cache
+playwright-report/
+
+# Logs and databases
 *.log
 *.sql
 *.sqlite
+
+# OS noise
+.DS_Store
