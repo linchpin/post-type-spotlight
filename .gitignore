@@ -2,11 +2,12 @@
 node_modules/
 vendor/
 
-# Build output. blocks/build IS committed - the plugin loads it at runtime and
-# .distignore does not exclude it - so it is deliberately absent here.
-build/
-test-results/
-zip/
+# Build output. Anchored with a leading slash: an unanchored `build/` also
+# matches blocks/build, which IS committed because the plugin loads it at
+# runtime and .distignore does not exclude it.
+/build/
+/test-results/
+/zip/
 
 # Tool caches and reports
 .phpcs.cache
