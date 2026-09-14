@@ -3,22 +3,22 @@ import { addFilter } from '@wordpress/hooks';
 import { PanelBody } from '@wordpress/components';
 import PTSFilter from '../components/filter';
 
-export const withPSTQueryControls = (BlockEdit) => (props) => {
-	const isPTSQueryLoopVariation = ({ attributes: { namespace } }) =>
+export const withPSTQueryControls = ( BlockEdit ) => ( props ) => {
+	const isPTSQueryLoopVariation = ( { attributes: { namespace } } ) =>
 		namespace === 'post-type-spotlight/featured-list';
 
-	return isPTSQueryLoopVariation(props) ? (
+	return isPTSQueryLoopVariation( props ) ? (
 		<>
-			<BlockEdit {...props} />
+			<BlockEdit { ...props } />
 			<InspectorControls>
 				<PanelBody>
-					<PTSFilter {...props} />
+					<PTSFilter { ...props } />
 				</PanelBody>
 			</InspectorControls>
 		</>
 	) : (
-		<BlockEdit {...props} />
+		<BlockEdit { ...props } />
 	);
 };
 
-addFilter('editor.BlockEdit', 'core/query', withPSTQueryControls);
+addFilter( 'editor.BlockEdit', 'core/query', withPSTQueryControls );

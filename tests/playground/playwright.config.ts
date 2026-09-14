@@ -36,7 +36,7 @@ export default defineConfig( {
 					},
 				],
 				[ 'github' ],
-		  ]
+			]
 		: 'line',
 	use: {
 		trace: 'on-first-retry',

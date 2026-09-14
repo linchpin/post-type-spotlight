@@ -10,7 +10,7 @@
     "prepare": "husky",
     "build": "wp-scripts build --webpack-src-dir=blocks/src --output-path=blocks/build",
     "start": "wp-scripts start --webpack-src-dir=blocks/src --output-path=blocks/build",
-    "format": "wp-scripts format",
+    "format": "wp-scripts format blocks/src tests",
     "lint:js": "wp-scripts lint-js blocks/src",
     "lint:css": "wp-scripts lint-style \"blocks/src/**/*.scss\"",
     "lint:pkg-json": "wp-scripts lint-pkg-json",

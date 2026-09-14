@@ -11,10 +11,10 @@ import { registerBlockType } from '@wordpress/blocks';
  * @return {WPBlockType | undefined} The block, if it has been successfully registered;
  *                        otherwise `undefined`.
  */
-export default function initBlock(block) {
-	if (!block) {
+export default function initBlock( block ) {
+	if ( ! block ) {
 		return;
 	}
 	const { metadata, settings, name } = block;
-	return registerBlockType({ name, ...metadata }, settings);
+	return registerBlockType( { name, ...metadata }, settings );
 }

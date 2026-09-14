@@ -20,10 +20,12 @@ import LogoMark from '../components/logo-mark';
  * @param {string} value Post type slug.
  * @return {string} The slug with its first letter upper-cased.
  */
-const capitalize = (value) =>
-	value ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase() : '';
+const capitalize = ( value ) =>
+	value
+		? value.charAt( 0 ).toUpperCase() + value.slice( 1 ).toLowerCase()
+		: '';
 
-const PTSToggle = (props) => {
+const PTSToggle = ( props ) => {
 	const { postType, isFeatured, onUpdateFeatured } = props;
 
 	return (
@@ -31,32 +33,34 @@ const PTSToggle = (props) => {
 			alignment="top"
 			justify="flex-start"
 			spacing="3"
-			style={{
+			style={ {
 				marginTop: 'calc(12px)',
 				minHeight: '3rem',
-			}}
+			} }
 		>
 			<Tooltip
-				text={sprintf(
+				text={ sprintf(
 					/* translators: %1$s: plural post type label, e.g. "posts". */
 					__(
 						'You can query all featured %1$s using the pts_feature_tax',
 						'post-type-spotlight'
 					),
 					postType
-				)}
+				) }
 			>
-				<Icon icon={<LogoMark width={'24px'} height={'24px'} />} />
+				<Icon
+					icon={ <LogoMark width={ '24px' } height={ '24px' } /> }
+				/>
 			</Tooltip>
 			<ToggleControl
-				checked={isFeatured}
-				label={sprintf(
+				checked={ isFeatured }
+				label={ sprintf(
 					/* translators: %1$s: singular post type label, e.g. "Post". */
-					__('Feature %1$s', 'post-type-spotlight'),
-					capitalize(postType)
-				)}
-				onChange={onUpdateFeatured}
-				style={{ marginBottom: '0!important' }}
+					__( 'Feature %1$s', 'post-type-spotlight' ),
+					capitalize( postType )
+				) }
+				onChange={ onUpdateFeatured }
+				style={ { marginBottom: '0!important' } }
 			/>
 		</HStack>
 	);

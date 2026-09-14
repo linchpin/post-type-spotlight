@@ -7,17 +7,17 @@ import './controls'; // Load out controls
 
 const VARIATION_NAME = 'post-type-spotlight/featured-list';
 
-registerBlockVariation('core/query', {
+registerBlockVariation( 'core/query', {
 	name: VARIATION_NAME,
-	title: __('Featured List', 'post-type-spotlight'),
+	title: __( 'Featured List', 'post-type-spotlight' ),
 	description: __(
 		'Displays a list of posts that are marked as featured.',
 		'post-type-spotlight'
 	),
-	isActive: ({ namespace }) => {
+	isActive: ( { namespace } ) => {
 		return namespace === VARIATION_NAME;
 	},
-	isPTSQueryLoopVariation: ({ namespace }) => {
+	isPTSQueryLoopVariation: ( { namespace } ) => {
 		return namespace === VARIATION_NAME;
 	},
 	icon: LogoMark,
@@ -39,15 +39,15 @@ registerBlockVariation('core/query', {
 		},
 		queryType: 'featured-only',
 	},
-	scope: ['inserter'],
+	scope: [ 'inserter' ],
 	innerBlocks: [
 		[
 			'core/post-template',
 			{},
-			[['core/post-title'], ['core/post-excerpt']],
+			[ [ 'core/post-title' ], [ 'core/post-excerpt' ] ],
 		],
-		['core/query-pagination'],
-		['core/query-no-results'],
+		[ 'core/query-pagination' ],
+		[ 'core/query-no-results' ],
 	],
-	allowedControls: ['postType', 'search', 'taxQuery'],
-});
+	allowedControls: [ 'postType', 'search', 'taxQuery' ],
+} );
