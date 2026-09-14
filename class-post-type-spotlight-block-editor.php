@@ -226,13 +226,17 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 
 			global $wpdb;
 
+			// Read-only query variable set by the block on the REST request. Read-only and
+			// used only to pick a sort order, so there is no state change to protect.
+			// phpcs:disable Linchpin.Security.NonceVerification.Recommended
 			if ( ! isset( $_REQUEST['queryType'] ) ) {
 				return $orderby;
 			}
 
-			if ( $_REQUEST['queryType'] !== 'featured-first' ) {
+			if ( 'featured-first' !== sanitize_key( wp_unslash( $_REQUEST['queryType'] ) ) ) {
 				return $orderby;
 			}
+			// phpcs:enable Linchpin.Security.NonceVerification.Recommended
 
 			$term = get_term_by('slug', 'featured', 'pts_feature_tax' );
 
@@ -270,20 +274,24 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 			$post_type = false;
 
 			if ( is_admin() ) {
-				if ( isset($_GET['post'])) {
-					$post_id = $_GET['post'];
-					$post_type = get_post_type($post_id);
+				// Reading which screen the editor is on. Read-only, and WordPress has not
+				// set a nonce on its own edit screen URLs.
+				// phpcs:disable Linchpin.Security.NonceVerification.Recommended
+				if ( isset( $_GET['post'] ) ) {
+					$post_id   = absint( wp_unslash( $_GET['post'] ) );
+					$post_type = get_post_type( $post_id );
 				} elseif ( isset( $_GET['post_type'] ) ) {
-					$post_type = $_GET['post_type'];
+					$post_type = sanitize_key( wp_unslash( $_GET['post_type'] ) );
 				}
-		
-				if ( $post_type && use_block_editor_for_post_type($post_type)) {
-			
+				// phpcs:enable Linchpin.Security.NonceVerification.Recommended
+
+				if ( $post_type && use_block_editor_for_post_type( $post_type ) ) {
+
 					$script_asset_path = POST_TYPE_SPOTLIGHT_PATH . 'blocks/build/index.asset.php';
 
 					if ( ! file_exists( $script_asset_path ) ) {
 						throw new \Error(
-							$script_asset_path . ' Missing: You need to run `npm start` or `npm run build` for the "post-type-spotlight/blocks" script first.'
+							esc_html( $script_asset_path ) . ' Missing: You need to run `npm start` or `npm run build` for the "post-type-spotlight/blocks" script first.'
 						);
 					}
 

@@ -2,7 +2,19 @@
 <ruleset name="Post Type Spotlight">
 	<description>Apply Linchpin coding standards with Post Type Spotlight overrides.</description>
 
-	<rule ref="Linchpin-Minimum"/>
+	<!--
+		Generic.Functions.CallTimePassByReference is deprecated in PHPCS since
+		3.12.1 and removed in 4.0. Linchpin-Minimum still references it, and the
+		resulting deprecation banner is printed to stdout AHEAD of the JSON
+		payload, so Linchpin\Composer\Actions cannot decode its own report -
+		which breaks both the pre-commit hook and the check-branch-cs step that
+		php-checks.yml runs in CI. The full Linchpin ruleset already excludes
+		this sniff; Linchpin-Minimum does not. Drop this once that is fixed
+		upstream.
+	-->
+	<rule ref="Linchpin-Minimum">
+		<exclude name="Generic.Functions.CallTimePassByReference"/>
+	</rule>
 
 	<!-- Only scan the plugin's own PHP sources. -->
 	<file>./post-type-spotlight.php</file>

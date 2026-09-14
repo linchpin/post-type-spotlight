@@ -1,1 +1,6 @@
 npx lint-staged --concurrent false
+
+# Not a lint-staged task: check_staged_cs derives its own file set from the
+# diff so it can report only the lines this commit touches. lint-staged appends
+# the staged filenames to whatever it runs, which the script does not accept.
+composer run check-staged-cs

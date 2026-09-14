@@ -25,9 +25,6 @@
     ],
     "blocks/src/**/*.{css,scss}": [
       "wp-scripts lint-style"
-    ],
-    "*.php": [
-      "composer run check-staged-cs"
     ]
   },
   "devDependencies": {
