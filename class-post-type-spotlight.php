@@ -17,7 +17,6 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 		 * Post_Type_Spotlight constructor.
 		 */
 		public function __construct() {
-			add_action( 'plugins_loaded', array( $this, 'plugins_loaded' ) );
 			add_action( 'init', array( $this, 'init' ) );
 			add_action( 'widgets_init', array( $this, 'widgets_init' ) );
 
@@ -38,17 +37,6 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 
 		}
 
-
-		/**
-		 * Setup our text domain after plugins are confirmed loaded
-		 */
-		public function plugins_loaded() {
-			load_plugin_textdomain(
-				'post-type-spotlight',
-				false,
-				POST_TYPE_SPOTLIGHT_PATH . 'languages/'
-			);
-		}
 
 		/**
 		 * init function.
@@ -520,7 +508,11 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 				return;
 			}
 
-			if ( isset( $_POST['_pts_featured_post_noncename'] ) && wp_verify_nonce( $_POST['_pts_featured_post_noncename'], '_pts_featured_post_nonce' ) ) {
+			$nonce = isset( $_POST['_pts_featured_post_noncename'] )
+				? sanitize_text_field( wp_unslash( $_POST['_pts_featured_post_noncename'] ) )
+				: '';
+
+			if ( $nonce && wp_verify_nonce( $nonce, '_pts_featured_post_nonce' ) ) {
 
 				if ( isset( $_POST['_pts_featured_post'] ) && ! empty( $_POST['_pts_featured_post'] ) ) {
 					delete_post_meta( $post_id, '_pts_featured_post' );

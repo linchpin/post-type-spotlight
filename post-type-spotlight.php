@@ -15,7 +15,6 @@
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: post-type-spotlight
- * Domain Path: /languages
  */
 
 // Make sure we don't expose any info if called directly.

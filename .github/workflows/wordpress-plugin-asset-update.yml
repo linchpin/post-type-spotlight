@@ -22,6 +22,10 @@ jobs:
       - name: Strip the release-please markers from readme.txt
         # Without this the marker lines render as literal text in the Stable
         # tag block on the WordPress.org listing.
+        # TODO: replace with linchpin/actions/actions/strip-release-markers@v4
+        # once linchpin/actions#178 lands in a v4 release. Kept inline until
+        # then so this workflow does not reference an action that does not
+        # exist yet.
         run: |
           sed -i '/x-release-please-start-version/d' ./readme.txt
           sed -i '/x-release-please-end/d' ./readme.txt
