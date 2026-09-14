@@ -1,6 +1,5 @@
 import { registerPlugin } from '@wordpress/plugins';
 import { PluginPostStatusInfo } from '@wordpress/edit-post';
-import { __ } from '@wordpress/i18n';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { useEntityProp } from '@wordpress/core-data';
 
@@ -64,15 +63,9 @@ const Admin = () => {
 	};
 
 	return (
-		<PluginPostStatusInfo
-			name="pts-post-settings-panel"
-			title={ __(
-				'Post Type Spotlight Settings',
-				'post-type-spotlight'
-			) }
-			className="pts-post-settings-panel"
-			style={ { width: '100%' } }
-		>
+		// PluginPostStatusInfo reads only children and className; the name,
+		// title and style props this used to pass were silently discarded.
+		<PluginPostStatusInfo className="pts-post-settings-panel">
 			<PTSToggle
 				onUpdateFeatured={ onUpdateFeatured }
 				isFeatured={ isFeatured }
