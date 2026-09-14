@@ -28,7 +28,7 @@
   "private": true,
   "require": {
     "php": ">=7.0",
-    "composer/installers": "^v2.2.0"
+    "composer/installers": "^v2.3.0"
   },
   "require-dev": {
     "phpseclib/phpseclib": "3.0.34",
