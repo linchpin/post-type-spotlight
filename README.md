@@ -1,49 +1,129 @@
-![Post Type Spotlight](https://github.com/linchpin/post-type-spotlight/blob/master/.wordpress-org/banner-1544x500.png?raw=true)
+![Post Type Spotlight](https://github.com/linchpin/post-type-spotlight/blob/main/.wordpress-org/banner-1544x500.png?raw=true)
 
-![Build Status](https://github.com/linchpin/post-type-spotlight/workflows/release-please/badge.svg?raw=true)
+# Post Type Spotlight
+
+Feature any post type — posts, pages, attachments, or your own — and then query, style and sort by that flag.
 
 <!-- x-release-please-start-version -->
+
 ## Latest Release: 3.0.3
+
 <!-- x-release-please-end -->
 
-# Post Type Spotlight #
+| Status                                                                                                                                  | Quality                                                                                                                             |
+| --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| ![Release](https://github.com/linchpin/post-type-spotlight/actions/workflows/release-please.yml/badge.svg)                              | ![PHP](https://github.com/linchpin/post-type-spotlight/actions/workflows/php.yml/badge.svg)                                         |
+| ![Plugin Check](https://github.com/linchpin/post-type-spotlight/actions/workflows/plugin-check.yml/badge.svg)                           | ![JavaScript](https://github.com/linchpin/post-type-spotlight/actions/workflows/js.yml/badge.svg)                                   |
+| ![Playground Tests](https://github.com/linchpin/post-type-spotlight/actions/workflows/playground-tests.yml/badge.svg)                   |                                                                                                                                       |
 
-Easily allows you to designate posts, pages, attachments and custom post types as featured.
+See [CHANGELOG.md](CHANGELOG.md) for release history and detailed changes.
+Full documentation is in [docs/post-type-spotlight](docs/post-type-spotlight/index.md). It publishes to
+docs.linchpin.com once `sync-docs.yml` is promoted out of its dry-run posture.
 
-## Description ##
+## Description
 
-The plugin displays a toggle within the publish area to feature a post. The toggle only appears on admin selected post types which can be selected in the `Settings -> Writing` screen.
+The plugin adds a **Feature this post** control to the editor. It only appears on the post types an administrator enables under `Settings → Writing`.
 
-**When a post is designated as featured:**
+When a post is designated as featured:
 
-*   It receives `featured` and `featured-{$posttype}` classes via the post_class filter.
-*   Shows featured ⭐️ in the post type's admin post list screen.
-*   Assigns the post a hidden taxonomy term (featured) that can easily be queried via the `pts_feature_tax` taxonomy.
+- It receives `featured` and `featured-{$post_type}` classes through the `post_class` filter.
+- A ⭐️ appears in a **Featured** column on that post type's admin list screen, with a **Featured** view that filters to just those posts.
+- It is assigned the hidden `pts_feature_tax` taxonomy term `featured`, so it can be queried with a standard `tax_query`.
 
-* Note: For the plugin to work on attachments, you must be using 3.5 or above. All other features will work on 3.1.0 and up.*
+Because the flag is a taxonomy term rather than post meta, finding featured content is an indexed taxonomy lookup instead of a meta query. WordPress' own sticky posts only work on the core `post` type; this works on any type you enable.
 
-## New in Version 3.0.0 ##
+## Requirements
 
-* Better compatibility with the Block Editor and the enhancements it brings.
-* Added a new Featured Posts Variation of the Query Loop
-* Added the ability to filter teh Featured Posts Query Loop to only show featured posts
-* Added the ability to filter the Featured Posts Query Loop to show all posts excluding featured posts
-* Added the ability to filter the Featured Posts Query Loop to show all posts and show featured posts first (similar to sticky)
-* Updated all dependencies
-* Added the ability to sort post lists by featured posts.
+| Requirement | Version       |
+| ----------- | ------------- |
+| WordPress   | 5.9 or later  |
+| PHP         | 7.4 or later  |
 
-## Installation ##
+## Installation
 
-1. Upload the plugin folder to the `/wp-content/plugins/` directory
-2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Navigate to the Settings->Writing section and select the post types you would like to have the featured abilities.
+1. Upload the plugin folder to `/wp-content/plugins/`, or install **Post Type Spotlight** from the Plugins screen.
+2. Activate it through the **Plugins** menu.
+3. Go to `Settings → Writing` and tick the post types that should gain the featured control.
 
+## Usage
 
-## Screenshots ##
+### Featuring a post
 
-1. The settings page.
-2. Options on the edit screen
-3. Markup example when using post_class();
-4. Shows featured posts in post edit tables.
+In the block editor, the **Summary** panel of the sidebar gains a **Feature _Post type_** toggle. In the classic editor, the Publish meta box gains a checkbox whose label is filterable through `pts_featured_checkbox_text`.
+
+### Querying featured posts
+
+```php
+$featured = new WP_Query(
+	array(
+		'post_type'      => 'post',
+		'posts_per_page' => 10,
+		'tax_query'      => array(
+			array(
+				'taxonomy' => 'pts_feature_tax',
+				'field'    => 'slug',
+				'terms'    => array( 'featured' ),
+			),
+		),
+	)
+);
+```
+
+Swap `'operator' => 'NOT IN'` into that clause to exclude featured posts instead. For a single post, `has_term( 'featured', 'pts_feature_tax', $post_id )`.
+
+### The Featured List block
+
+A **Featured List** variation of the core Query Loop block ships with the plugin, plus a control for how the query treats featured posts — only featured, exclude featured, or featured first.
+
+## Getting set up locally
+
+Prerequisites:
+
+1. Node.js `>=20.20.2` (see `.nvmrc`)
+2. PHP `8.2` for the toolchain — note the plugin itself still supports 7.4
+3. Composer
+
+```bash
+composer install
+npm install
+npm run build
+```
+
+`npm run build` compiles `blocks/src` into `blocks/build`, which is committed because the plugin loads it at runtime. Use `npm run start` to watch.
+
+### Quality checks
+
+```bash
+composer lint            # parse lint + PHPCS against the Linchpin standard
+composer phpcbf          # auto-fix what PHPCS can
+npm run lint:js
+npm run lint:css
+npm run test:playground  # boots the plugin in WordPress Playground
+```
+
+A pre-commit hook runs `composer check-staged-cs`, which scopes PHPCS to the lines a commit actually changes rather than whole files.
+
+### Tests and screenshots
+
+The test suite boots the plugin in [WordPress Playground](https://wordpress.org/playground/) and drives its real admin screens with Playwright. Each spec captures a screenshot; in CI those upload as artifacts and post back to the pull request, so a visual regression in the editor sidebar or the posts list shows up in review.
+
+```bash
+npm run test:playground:headed  # watch it run
+npm run test:playground:ui      # Playwright UI mode
+```
+
+Specs live in `tests/playground/specs`. `blueprint.json` seeds the Playground instance.
+
+## Build process and releases
+
+Versioning is handled by `release-please`. Commit with [Conventional Commits](https://www.conventionalcommits.org/) and it opens a release PR that bumps the version across `post-type-spotlight.php`, `readme.txt`, `package.json` and this file, and writes the changelog. Merging that PR tags the release, which triggers the GitHub release zip and the WordPress.org SVN deploy.
+
+`bash scripts/build.sh` produces the distributable at `build/post-type-spotlight` — the same artifact Plugin Check inspects and the release ships.
+
+> Never hand-edit `CHANGELOG.md`, `.release-please-manifest.json`, or a version string in a file release-please owns.
+
+## Coding standards
+
+PHP follows [`linchpin/coding-standards`](https://github.com/linchpin/coding-standards) via `phpcs.xml.dist`. `testVersion` is pinned to `7.4-` rather than the standard's default, because the toolchain runs on PHP 8.2 while the plugin still ships to hosts on 7.4.
 
 ![Linchpin](https://github.com/linchpin/brand-assets/blob/master/github-banner@2x.jpg?raw=true)
