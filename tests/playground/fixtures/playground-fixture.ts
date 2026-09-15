@@ -51,7 +51,18 @@ export const test = base.extend< PlaygroundFixtures & PlaygroundOptions >( {
 
 			await server.server.close();
 		},
-		{ timeout: 90_000 },
+		/*
+		 * Generous because the first boot of a run downloads WordPress and the
+		 * PHP-WASM runtime before it serves anything. A warm boot takes two or
+		 * three seconds; a cold one was measured at 125 seconds on a laptop and
+		 * is slower again on a loaded machine. At 90 seconds the first test of a
+		 * run failed on the fixture while every test after it passed in under
+		 * four, which reads as a broken feature rather than a cold cache.
+		 *
+		 * This is a ceiling, not a reservation: a boot that finishes in two
+		 * seconds still takes two.
+		 */
+		{ timeout: 300_000 },
 	],
 
 	wpBaseUrl: async ( { playgroundServer }, use ) => {
