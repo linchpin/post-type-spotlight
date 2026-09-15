@@ -18,7 +18,7 @@
 
 | Requirement | Version |
 | --- | --- |
-| WordPress | 5.9 or later |
+| WordPress | 6.1 or later |
 | PHP | 7.4 or later |
 
 ## After activating

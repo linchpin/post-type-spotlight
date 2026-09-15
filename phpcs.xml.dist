@@ -38,7 +38,7 @@
 		so it has to come after the rule ref above.
 	-->
 	<config name="testVersion" value="7.4-"/>
-	<config name="minimum_supported_wp_version" value="5.9"/>
+	<config name="minimum_supported_wp_version" value="6.1"/>
 
 	<!--
 		Restrict global prefixes to this plugin.
