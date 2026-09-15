@@ -11,6 +11,30 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 	 */
 	class Post_Type_Spotlight {
 
+		/**
+		 * Option recording that an admin dismissed the setup notice.
+		 *
+		 * Site scoped rather than user scoped: the setting the notice points at
+		 * is site wide, so once any admin has answered the prompt the site has
+		 * been onboarded.
+		 *
+		 * @since 3.1.0
+		 * @var string
+		 */
+		const ONBOARDING_DISMISSED_OPTION = 'pts_onboarding_dismissed';
+
+		/**
+		 * Anchor on the Settings > Writing section this plugin adds.
+		 *
+		 * `do_settings_sections()` gives the section heading no id of its own,
+		 * so the section callback prints this one for the notice and the
+		 * Plugins row link to aim at.
+		 *
+		 * @since 3.1.0
+		 * @var string
+		 */
+		const SETTINGS_ANCHOR = 'pts-featured-post-types';
+
 		private $doing_upgrades;
 
 		/**
@@ -32,6 +56,11 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 
 			add_filter( 'post_class', array( $this, 'post_class' ), 10, 3 );
+
+			add_action( 'admin_notices', array( $this, 'onboarding_notice' ) );
+			add_action( 'wp_ajax_pts_dismiss_onboarding', array( $this, 'ajax_dismiss_onboarding' ) );
+
+			add_filter( 'plugin_action_links_' . plugin_basename( POST_TYPE_SPOTLIGHT_FILE ), array( $this, 'plugin_action_links' ) );
 
 
 			$this->doing_upgrades = false;
@@ -260,10 +289,246 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 		public function settings_section_text() {
 			global $new_whitelist_options;
 			?>
-			<p>
+			<p id="<?php echo esc_attr( self::SETTINGS_ANCHOR ); ?>" style="scroll-margin-top: 64px;">
 				<?php esc_html_e( 'Select which post types can be featured.', 'post-type-spotlight' ); ?>
 			</p>
 			<?php
+		}
+
+		/**
+		 * URL of the Settings > Writing section this plugin adds.
+		 *
+		 * @since 3.1.0
+		 *
+		 * @access public
+		 * @return string
+		 */
+		public function settings_url() {
+			return admin_url( 'options-writing.php#' . self::SETTINGS_ANCHOR );
+		}
+
+		/**
+		 * Whether the site still needs to choose its featured post types.
+		 *
+		 * Deliberately derived from stored state rather than set by an
+		 * activation hook. `get_option()` returns false only when no row exists
+		 * at all - the settings always save an array, even an empty one - so
+		 * this is true for a site that has never been through the Writing
+		 * screen and false the moment it has, whatever it chose there. That
+		 * covers network activation, WP-CLI activation and installs that were
+		 * activated before this notice existed, none of which an activation
+		 * hook would reach.
+		 *
+		 * @since 3.1.0
+		 *
+		 * @access public
+		 * @return bool
+		 */
+		public function needs_onboarding() {
+			if ( false !== get_option( 'pts_featured_post_types_settings' ) ) {
+				return false;
+			}
+
+			return ! get_option( self::ONBOARDING_DISMISSED_OPTION );
+		}
+
+		/**
+		 * Point a fresh install at the screen that makes it do something.
+		 *
+		 * Activating the plugin changes nothing an author can see. The editor
+		 * control, the admin column and the Featured view all wait on a post
+		 * type being ticked under Settings > Writing, so without this an admin
+		 * activates the plugin and finds no trace of it anywhere.
+		 *
+		 * @since 3.1.0
+		 *
+		 * @access public
+		 * @return void
+		 */
+		public function onboarding_notice() {
+			if ( ! current_user_can( 'manage_options' ) ) {
+				return;
+			}
+
+			if ( ! $this->needs_onboarding() ) {
+				return;
+			}
+
+			$screen = get_current_screen();
+
+			// No point sending them to the screen they are already reading.
+			if ( $screen && 'options-writing' === $screen->id ) {
+				return;
+			}
+			?>
+			<style>
+				.pts-onboarding-notice__inner {
+					display: flex;
+					align-items: center;
+					gap: 12px;
+					min-height: 30px;
+				}
+
+				.pts-onboarding-notice__mark,
+				.pts-onboarding-notice__cta {
+					flex: 0 0 auto;
+				}
+
+				.pts-onboarding-notice__mark {
+					display: flex;
+				}
+
+				.pts-onboarding-notice__text {
+					flex: 1 1 auto;
+					min-width: 0;
+				}
+
+				.pts-onboarding-notice p {
+					margin: 0;
+					padding: 0;
+				}
+
+				.pts-onboarding-notice__hint {
+					color: #50575e;
+				}
+
+				/*
+				 * Core reserves 38px of padding for the dismiss button and drops
+				 * the notice to a stacked layout at this width, where a button
+				 * sitting beside the text has nowhere to go.
+				 */
+				@media screen and (max-width: 782px) {
+					.pts-onboarding-notice__inner {
+						flex-wrap: wrap;
+					}
+
+					.pts-onboarding-notice__text {
+						flex-basis: 100%;
+						order: 1;
+					}
+				}
+			</style>
+			<div class="notice notice-info is-dismissible pts-onboarding-notice">
+				<div class="pts-onboarding-notice__inner">
+					<span class="pts-onboarding-notice__mark" aria-hidden="true">
+						<svg width="28" height="28" viewBox="0 0 47.507 48" xmlns="http://www.w3.org/2000/svg" focusable="false">
+							<defs>
+								<linearGradient id="pts-onboarding-mark" x1="15.044" y1="46.627" x2="31.956" y2=".16" gradientUnits="userSpaceOnUse">
+									<stop offset="0" stop-color="#7d58c6" />
+									<stop offset=".261" stop-color="#677bc9" />
+									<stop offset=".581" stop-color="#51a1cc" />
+									<stop offset=".838" stop-color="#44b8cf" />
+									<stop offset="1" stop-color="#3fc1d0" />
+								</linearGradient>
+							</defs>
+							<circle cx="43.966" cy="3.54" r="3.54" fill="#7a7a7a" />
+							<path fill="url(#pts-onboarding-mark)" d="m43.966,9.895c-3.509,0-6.354-2.845-6.354-6.354,0-.437.044-.863.128-1.275h-14.873C10.238,2.266,0,12.504,0,25.133h0c0,12.629,10.238,22.867,22.867,22.867h0c12.629,0,22.867-10.238,22.867-22.867v-15.489c-.562.162-1.154.251-1.768.251Zm-12.953,26.821l-8.146-4.073-8.146,4.073,1.534-9.001-5.607-6.272,8.146-1.018,4.073-8.146,4.073,8.146,8.146,1.018-5.594,6.272,1.521,9.001Z" />
+						</svg>
+					</span>
+					<div class="pts-onboarding-notice__text">
+						<p>
+							<?php
+							printf(
+								/* translators: %s: Plugin name, wrapped in a strong tag. */
+								esc_html__( '%s is active, but no post types can be featured yet.', 'post-type-spotlight' ),
+								'<strong>' . esc_html( POST_TYPE_SPOTLIGHT_PLUGIN_NAME ) . '</strong>'
+							);
+							?>
+						</p>
+						<p class="pts-onboarding-notice__hint">
+							<?php esc_html_e( 'Choose which post types should get a Featured control. You can always change this later under Settings then Writing.', 'post-type-spotlight' ); ?>
+						</p>
+					</div>
+					<a class="button button-primary pts-onboarding-notice__cta" href="<?php echo esc_url( $this->settings_url() ); ?>">
+						<?php esc_html_e( 'Choose post types', 'post-type-spotlight' ); ?>
+					</a>
+				</div>
+			</div>
+			<?php
+			/*
+			 * Core only hides a dismissed notice for the current page load, so
+			 * the X has to write the choice down itself. Delegated from the
+			 * document because core's common.js injects that button on ready,
+			 * after this markup is printed.
+			 *
+			 * Taking up the offer counts as answering the prompt too, so the CTA
+			 * records the same thing. That click navigates away, which a fetch()
+			 * does not reliably outlive, so it goes out as a beacon instead -
+			 * the one request type the browser promises to finish after unload.
+			 */
+			wp_print_inline_script_tag(
+				sprintf(
+					'document.addEventListener( "click", function ( event ) {
+	var target = event.target.closest ? event.target.closest( ".notice-dismiss, .pts-onboarding-notice__cta" ) : null;
+
+	if ( ! target || ! target.closest( ".pts-onboarding-notice" ) ) {
+		return;
+	}
+
+	var endpoint = %1$s;
+	var body = "action=pts_dismiss_onboarding&_ajax_nonce=" + %2$s;
+
+	if ( target.classList.contains( "pts-onboarding-notice__cta" ) && navigator.sendBeacon ) {
+		navigator.sendBeacon( endpoint, new Blob( [ body ], { type: "application/x-www-form-urlencoded" } ) );
+		return;
+	}
+
+	window.fetch( endpoint, {
+		method: "POST",
+		credentials: "same-origin",
+		headers: { "Content-Type": "application/x-www-form-urlencoded" },
+		body: body
+	} );
+} );',
+					wp_json_encode( admin_url( 'admin-ajax.php' ) ),
+					wp_json_encode( wp_create_nonce( 'pts_dismiss_onboarding' ) )
+				)
+			);
+		}
+
+		/**
+		 * Persist a dismissal of the setup notice.
+		 *
+		 * @since 3.1.0
+		 *
+		 * @access public
+		 * @return void
+		 */
+		public function ajax_dismiss_onboarding() {
+			check_ajax_referer( 'pts_dismiss_onboarding' );
+
+			if ( ! current_user_can( 'manage_options' ) ) {
+				wp_send_json_error( null, 403 );
+			}
+
+			update_option( self::ONBOARDING_DISMISSED_OPTION, 1, false );
+
+			wp_send_json_success();
+		}
+
+		/**
+		 * Add a Settings link to the plugin's row on the Plugins screen.
+		 *
+		 * The settings live inside a section of a core screen, which is the one
+		 * place an admin looking for a plugin's options will not think to look.
+		 *
+		 * @since 3.1.0
+		 *
+		 * @access public
+		 * @param  array $links Action links for this plugin's row.
+		 * @return array
+		 */
+		public function plugin_action_links( $links ) {
+			array_unshift(
+				$links,
+				sprintf(
+					'<a href="%1$s">%2$s</a>',
+					esc_url( $this->settings_url() ),
+					esc_html__( 'Settings', 'post-type-spotlight' )
+				)
+			);
+
+			return $links;
 		}
 
 		/**
