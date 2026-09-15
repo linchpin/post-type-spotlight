@@ -361,21 +361,88 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 				return;
 			}
 			?>
+			<style>
+				.pts-onboarding-notice__inner {
+					display: flex;
+					align-items: center;
+					gap: 12px;
+					min-height: 30px;
+				}
+
+				.pts-onboarding-notice__mark,
+				.pts-onboarding-notice__cta {
+					flex: 0 0 auto;
+				}
+
+				.pts-onboarding-notice__mark {
+					display: flex;
+				}
+
+				.pts-onboarding-notice__text {
+					flex: 1 1 auto;
+					min-width: 0;
+				}
+
+				.pts-onboarding-notice p {
+					margin: 0;
+					padding: 0;
+				}
+
+				.pts-onboarding-notice__hint {
+					color: #50575e;
+				}
+
+				/*
+				 * Core reserves 38px of padding for the dismiss button and drops
+				 * the notice to a stacked layout at this width, where a button
+				 * sitting beside the text has nowhere to go.
+				 */
+				@media screen and (max-width: 782px) {
+					.pts-onboarding-notice__inner {
+						flex-wrap: wrap;
+					}
+
+					.pts-onboarding-notice__text {
+						flex-basis: 100%;
+						order: 1;
+					}
+				}
+			</style>
 			<div class="notice notice-info is-dismissible pts-onboarding-notice">
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Plugin name, wrapped in a strong tag. */
-						esc_html__( '%s is active, but no post types can be featured yet. Choose which post types should get a Featured control, and their editor screens, list tables and queries pick it up from there.', 'post-type-spotlight' ),
-						'<strong>' . esc_html( POST_TYPE_SPOTLIGHT_PLUGIN_NAME ) . '</strong>'
-					);
-					?>
-				</p>
-				<p>
-					<a class="button button-primary" href="<?php echo esc_url( $this->settings_url() ); ?>">
+				<div class="pts-onboarding-notice__inner">
+					<span class="pts-onboarding-notice__mark" aria-hidden="true">
+						<svg width="28" height="28" viewBox="0 0 47.507 48" xmlns="http://www.w3.org/2000/svg" focusable="false">
+							<defs>
+								<linearGradient id="pts-onboarding-mark" x1="15.044" y1="46.627" x2="31.956" y2=".16" gradientUnits="userSpaceOnUse">
+									<stop offset="0" stop-color="#7d58c6" />
+									<stop offset=".261" stop-color="#677bc9" />
+									<stop offset=".581" stop-color="#51a1cc" />
+									<stop offset=".838" stop-color="#44b8cf" />
+									<stop offset="1" stop-color="#3fc1d0" />
+								</linearGradient>
+							</defs>
+							<circle cx="43.966" cy="3.54" r="3.54" fill="#7a7a7a" />
+							<path fill="url(#pts-onboarding-mark)" d="m43.966,9.895c-3.509,0-6.354-2.845-6.354-6.354,0-.437.044-.863.128-1.275h-14.873C10.238,2.266,0,12.504,0,25.133h0c0,12.629,10.238,22.867,22.867,22.867h0c12.629,0,22.867-10.238,22.867-22.867v-15.489c-.562.162-1.154.251-1.768.251Zm-12.953,26.821l-8.146-4.073-8.146,4.073,1.534-9.001-5.607-6.272,8.146-1.018,4.073-8.146,4.073,8.146,8.146,1.018-5.594,6.272,1.521,9.001Z" />
+						</svg>
+					</span>
+					<div class="pts-onboarding-notice__text">
+						<p>
+							<?php
+							printf(
+								/* translators: %s: Plugin name, wrapped in a strong tag. */
+								esc_html__( '%s is active, but no post types can be featured yet.', 'post-type-spotlight' ),
+								'<strong>' . esc_html( POST_TYPE_SPOTLIGHT_PLUGIN_NAME ) . '</strong>'
+							);
+							?>
+						</p>
+						<p class="pts-onboarding-notice__hint">
+							<?php esc_html_e( 'Choose which post types should get a Featured control. You can always change this later under Settings then Writing.', 'post-type-spotlight' ); ?>
+						</p>
+					</div>
+					<a class="button button-primary pts-onboarding-notice__cta" href="<?php echo esc_url( $this->settings_url() ); ?>">
 						<?php esc_html_e( 'Choose post types', 'post-type-spotlight' ); ?>
 					</a>
-				</p>
+				</div>
 			</div>
 			<?php
 			/*
@@ -383,21 +450,34 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			 * the X has to write the choice down itself. Delegated from the
 			 * document because core's common.js injects that button on ready,
 			 * after this markup is printed.
+			 *
+			 * Taking up the offer counts as answering the prompt too, so the CTA
+			 * records the same thing. That click navigates away, which a fetch()
+			 * does not reliably outlive, so it goes out as a beacon instead -
+			 * the one request type the browser promises to finish after unload.
 			 */
 			wp_print_inline_script_tag(
 				sprintf(
 					'document.addEventListener( "click", function ( event ) {
-	var button = event.target.closest ? event.target.closest( ".notice-dismiss" ) : null;
+	var target = event.target.closest ? event.target.closest( ".notice-dismiss, .pts-onboarding-notice__cta" ) : null;
 
-	if ( ! button || ! button.closest( ".pts-onboarding-notice" ) ) {
+	if ( ! target || ! target.closest( ".pts-onboarding-notice" ) ) {
 		return;
 	}
 
-	window.fetch( %1$s, {
+	var endpoint = %1$s;
+	var body = "action=pts_dismiss_onboarding&_ajax_nonce=" + %2$s;
+
+	if ( target.classList.contains( "pts-onboarding-notice__cta" ) && navigator.sendBeacon ) {
+		navigator.sendBeacon( endpoint, new Blob( [ body ], { type: "application/x-www-form-urlencoded" } ) );
+		return;
+	}
+
+	window.fetch( endpoint, {
 		method: "POST",
 		credentials: "same-origin",
 		headers: { "Content-Type": "application/x-www-form-urlencoded" },
-		body: "action=pts_dismiss_onboarding&_ajax_nonce=" + %2$s
+		body: body
 	} );
 } );',
 					wp_json_encode( admin_url( 'admin-ajax.php' ) ),

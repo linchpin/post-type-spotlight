@@ -34,11 +34,30 @@ test.describe( 'Onboarding notice', () => {
 			'no post types can be featured yet'
 		);
 
+		await expect(
+			notice.locator( '.pts-onboarding-notice__mark svg' )
+		).toBeVisible();
+
+		await expect( notice ).toContainText(
+			'change this later under Settings then Writing'
+		);
+
 		const cta = notice.getByRole( 'link', { name: 'Choose post types' } );
 		await expect( cta ).toHaveAttribute(
 			'href',
 			/options-writing\.php#pts-featured-post-types$/
 		);
+
+		// The mark leads, the call to action sits at the dismiss end of the row.
+		const markBox = await notice
+			.locator( '.pts-onboarding-notice__mark' )
+			.boundingBox();
+		const ctaBox = await cta.boundingBox();
+		const textBox = await notice
+			.locator( '.pts-onboarding-notice__text' )
+			.boundingBox();
+		expect( markBox.x ).toBeLessThan( textBox.x );
+		expect( ctaBox.x ).toBeGreaterThan( textBox.x );
 
 		await page.screenshot( {
 			path: path.join( screenshotDir, 'onboarding-notice.png' ),
@@ -125,6 +144,45 @@ test.describe( 'Onboarding notice', () => {
 		expect( stored.trim() ).toBe( 'yes' );
 
 		// The part a page-load-only dismissal would get wrong.
+		await page.goto( `${ wpBaseUrl }/wp-admin/index.php` );
+		await expect( page.locator( '.pts-onboarding-notice' ) ).toHaveCount(
+			0
+		);
+
+		await runPhp(
+			"delete_option( 'pts_onboarding_dismissed' ); update_option( 'pts_featured_post_types_settings', array( 'post', 'page' ) );"
+		);
+	} );
+
+	test( 'stops once the call to action is taken', async ( {
+		page,
+		wpBaseUrl,
+		runPhp,
+	} ) => {
+		await runPhp( asFreshInstall );
+
+		await page.goto( `${ wpBaseUrl }/wp-admin/index.php` );
+
+		// Taking up the offer answers the prompt, so it should not come back
+		// even if the Writing screen is then left without saving.
+		await page
+			.locator( '.pts-onboarding-notice__cta' )
+			.click( { noWaitAfter: true } );
+		await page.waitForURL( /options-writing\.php/ );
+
+		// The beacon is fire-and-forget, so poll rather than race it.
+		await expect
+			.poll(
+				async () =>
+					(
+						await runPhp(
+							"echo get_option( 'pts_onboarding_dismissed' ) ? 'yes' : 'no';"
+						)
+					).trim(),
+				{ timeout: 10000 }
+			)
+			.toBe( 'yes' );
+
 		await page.goto( `${ wpBaseUrl }/wp-admin/index.php` );
 		await expect( page.locator( '.pts-onboarding-notice' ) ).toHaveCount(
 			0
