@@ -23,6 +23,15 @@
 
 ## After activating
 
-Nothing is featured until you choose which post types can be. Go to
-**Settings → Writing** and tick the post types you want, under **Featured Post
-Types**. See [Usage](usage.md).
+Nothing is featured until you choose which post types can be, so the plugin
+does nothing visible until you do. A notice in the admin says so and links
+straight to the screen, and the plugin's row on **Plugins** gains a **Settings**
+link to the same place.
+
+Either way the destination is **Settings → Writing**, where the **Featured Post
+Types** section lists every public post type. Tick the ones you want and save.
+See [Usage](usage.md).
+
+The notice stops once that screen has been saved — including when you save it
+with nothing ticked, which is a valid answer — or when you dismiss it with the
+X. Dismissal is recorded for the whole site, not per user.

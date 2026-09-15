@@ -11,6 +11,30 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 	 */
 	class Post_Type_Spotlight {
 
+		/**
+		 * Option recording that an admin dismissed the setup notice.
+		 *
+		 * Site scoped rather than user scoped: the setting the notice points at
+		 * is site wide, so once any admin has answered the prompt the site has
+		 * been onboarded.
+		 *
+		 * @since 3.1.0
+		 * @var string
+		 */
+		const ONBOARDING_DISMISSED_OPTION = 'pts_onboarding_dismissed';
+
+		/**
+		 * Anchor on the Settings > Writing section this plugin adds.
+		 *
+		 * `do_settings_sections()` gives the section heading no id of its own,
+		 * so the section callback prints this one for the notice and the
+		 * Plugins row link to aim at.
+		 *
+		 * @since 3.1.0
+		 * @var string
+		 */
+		const SETTINGS_ANCHOR = 'pts-featured-post-types';
+
 		private $doing_upgrades;
 
 		/**
@@ -32,6 +56,11 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 
 			add_filter( 'post_class', array( $this, 'post_class' ), 10, 3 );
+
+			add_action( 'admin_notices', array( $this, 'onboarding_notice' ) );
+			add_action( 'wp_ajax_pts_dismiss_onboarding', array( $this, 'ajax_dismiss_onboarding' ) );
+
+			add_filter( 'plugin_action_links_' . plugin_basename( POST_TYPE_SPOTLIGHT_FILE ), array( $this, 'plugin_action_links' ) );
 
 
 			$this->doing_upgrades = false;
@@ -260,10 +289,166 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 		public function settings_section_text() {
 			global $new_whitelist_options;
 			?>
-			<p>
+			<p id="<?php echo esc_attr( self::SETTINGS_ANCHOR ); ?>" style="scroll-margin-top: 64px;">
 				<?php esc_html_e( 'Select which post types can be featured.', 'post-type-spotlight' ); ?>
 			</p>
 			<?php
+		}
+
+		/**
+		 * URL of the Settings > Writing section this plugin adds.
+		 *
+		 * @since 3.1.0
+		 *
+		 * @access public
+		 * @return string
+		 */
+		public function settings_url() {
+			return admin_url( 'options-writing.php#' . self::SETTINGS_ANCHOR );
+		}
+
+		/**
+		 * Whether the site still needs to choose its featured post types.
+		 *
+		 * Deliberately derived from stored state rather than set by an
+		 * activation hook. `get_option()` returns false only when no row exists
+		 * at all - the settings always save an array, even an empty one - so
+		 * this is true for a site that has never been through the Writing
+		 * screen and false the moment it has, whatever it chose there. That
+		 * covers network activation, WP-CLI activation and installs that were
+		 * activated before this notice existed, none of which an activation
+		 * hook would reach.
+		 *
+		 * @since 3.1.0
+		 *
+		 * @access public
+		 * @return bool
+		 */
+		public function needs_onboarding() {
+			if ( false !== get_option( 'pts_featured_post_types_settings' ) ) {
+				return false;
+			}
+
+			return ! get_option( self::ONBOARDING_DISMISSED_OPTION );
+		}
+
+		/**
+		 * Point a fresh install at the screen that makes it do something.
+		 *
+		 * Activating the plugin changes nothing an author can see. The editor
+		 * control, the admin column and the Featured view all wait on a post
+		 * type being ticked under Settings > Writing, so without this an admin
+		 * activates the plugin and finds no trace of it anywhere.
+		 *
+		 * @since 3.1.0
+		 *
+		 * @access public
+		 * @return void
+		 */
+		public function onboarding_notice() {
+			if ( ! current_user_can( 'manage_options' ) ) {
+				return;
+			}
+
+			if ( ! $this->needs_onboarding() ) {
+				return;
+			}
+
+			$screen = get_current_screen();
+
+			// No point sending them to the screen they are already reading.
+			if ( $screen && 'options-writing' === $screen->id ) {
+				return;
+			}
+			?>
+			<div class="notice notice-info is-dismissible pts-onboarding-notice">
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Plugin name, wrapped in a strong tag. */
+						esc_html__( '%s is active, but no post types can be featured yet. Choose which post types should get a Featured control, and their editor screens, list tables and queries pick it up from there.', 'post-type-spotlight' ),
+						'<strong>' . esc_html( POST_TYPE_SPOTLIGHT_PLUGIN_NAME ) . '</strong>'
+					);
+					?>
+				</p>
+				<p>
+					<a class="button button-primary" href="<?php echo esc_url( $this->settings_url() ); ?>">
+						<?php esc_html_e( 'Choose post types', 'post-type-spotlight' ); ?>
+					</a>
+				</p>
+			</div>
+			<?php
+			/*
+			 * Core only hides a dismissed notice for the current page load, so
+			 * the X has to write the choice down itself. Delegated from the
+			 * document because core's common.js injects that button on ready,
+			 * after this markup is printed.
+			 */
+			wp_print_inline_script_tag(
+				sprintf(
+					'document.addEventListener( "click", function ( event ) {
+	var button = event.target.closest ? event.target.closest( ".notice-dismiss" ) : null;
+
+	if ( ! button || ! button.closest( ".pts-onboarding-notice" ) ) {
+		return;
+	}
+
+	window.fetch( %1$s, {
+		method: "POST",
+		credentials: "same-origin",
+		headers: { "Content-Type": "application/x-www-form-urlencoded" },
+		body: "action=pts_dismiss_onboarding&_ajax_nonce=" + %2$s
+	} );
+} );',
+					wp_json_encode( admin_url( 'admin-ajax.php' ) ),
+					wp_json_encode( wp_create_nonce( 'pts_dismiss_onboarding' ) )
+				)
+			);
+		}
+
+		/**
+		 * Persist a dismissal of the setup notice.
+		 *
+		 * @since 3.1.0
+		 *
+		 * @access public
+		 * @return void
+		 */
+		public function ajax_dismiss_onboarding() {
+			check_ajax_referer( 'pts_dismiss_onboarding' );
+
+			if ( ! current_user_can( 'manage_options' ) ) {
+				wp_send_json_error( null, 403 );
+			}
+
+			update_option( self::ONBOARDING_DISMISSED_OPTION, 1, false );
+
+			wp_send_json_success();
+		}
+
+		/**
+		 * Add a Settings link to the plugin's row on the Plugins screen.
+		 *
+		 * The settings live inside a section of a core screen, which is the one
+		 * place an admin looking for a plugin's options will not think to look.
+		 *
+		 * @since 3.1.0
+		 *
+		 * @access public
+		 * @param  array $links Action links for this plugin's row.
+		 * @return array
+		 */
+		public function plugin_action_links( $links ) {
+			array_unshift(
+				$links,
+				sprintf(
+					'<a href="%1$s">%2$s</a>',
+					esc_url( $this->settings_url() ),
+					esc_html__( 'Settings', 'post-type-spotlight' )
+				)
+			);
+
+			return $links;
 		}
 
 		/**

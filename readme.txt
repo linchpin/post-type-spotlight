@@ -30,6 +30,8 @@ When a post is designated as featured:
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Navigate to the Settings->Writing section and select the post types you would like to have the featured abilities.
 
+Until step 3 is done the plugin has nothing to act on, so it shows an admin notice linking to that screen. The plugin's row on the Plugins screen also gains a Settings link to the same place.
+
 == Frequently Asked Questions ==
 
 = Isn't this the same as sticky posts? =

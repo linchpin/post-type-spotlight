@@ -45,6 +45,8 @@ Because the flag is a taxonomy term rather than post meta, finding featured cont
 2. Activate it through the **Plugins** menu.
 3. Go to `Settings → Writing` and tick the post types that should gain the featured control.
 
+Step 3 is the one that makes the plugin do anything, so until it is done an admin notice links straight to that screen, and the plugin's row on the Plugins screen carries a **Settings** link to it.
+
 ## Usage
 
 ### Featuring a post
