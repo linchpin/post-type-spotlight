@@ -36,7 +36,7 @@ Because the flag is a taxonomy term rather than post meta, finding featured cont
 
 | Requirement | Version       |
 | ----------- | ------------- |
-| WordPress   | 5.9 or later  |
+| WordPress   | 6.1 or later  |
 | PHP         | 7.4 or later  |
 
 ## Installation
