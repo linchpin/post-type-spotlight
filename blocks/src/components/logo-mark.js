@@ -10,16 +10,31 @@ import {
 	LinearGradient,
 } from '@wordpress/primitives';
 
+/**
+ * The Post Type Spotlight mark.
+ *
+ * Accepts `size` as well as `width`/`height` because that is the contract
+ * WordPress's Icon component uses: passing this component to `<Icon icon>` or
+ * a Button's `icon` prop renders it as `<LogoMark size={24} />`, with no width
+ * or height at all. Without a `size` fallback the SVG had nothing to constrain
+ * it and rendered at full bleed, pushing the button's own label out of view.
+ *
+ * @param {Object}        props
+ * @param {number|string} [props.size=24] Icon size, used for both dimensions.
+ * @param {number|string} [props.width]   Overrides size for width.
+ * @param {number|string} [props.height]  Overrides size for height.
+ * @return {React.ReactElement} The mark.
+ */
 export default function LogoMark( props ) {
-	const { width, height } = props;
+	const { size = 24, width, height } = props;
 
 	return (
 		<SVG
 			id="Layer_1"
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox="0 0 47.507 48"
-			width={ width }
-			height={ height }
+			width={ width ?? size }
+			height={ height ?? size }
 		>
 			<Defs>
 				<LinearGradient
