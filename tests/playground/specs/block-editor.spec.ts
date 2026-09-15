@@ -2,74 +2,160 @@ import { test, expect } from '../fixtures/playground-fixture';
 import path from 'path';
 
 /**
- * The block editor toggle is a PluginPostStatusInfo slotfill, so it renders
- * inside the Summary panel of the editor settings sidebar. It is the piece
- * most likely to break silently on a WordPress upgrade — a renamed slot just
- * renders nothing — which is what a screenshot on every pull request catches.
- *
- * The control is a ToggleControl labelled "Feature <Post type>", so it is
- * reached by its label rather than by a plugin-specific id, which it has none
- * of: WordPress generates `inspector-toggle-control-N`.
+ * The Spotlight control is a PluginPostStatusInfo slotfill, so it renders in
+ * the Summary panel of the editor sidebar alongside Status, Format and
+ * Discussion. It is the piece most likely to break silently on a WordPress
+ * upgrade - a renamed slot or a changed panel class just renders nothing.
  */
 test.describe( 'Block editor', () => {
-	test( 'renders the featured toggle in the post sidebar', async ( {
-		page,
-		wpBaseUrl,
-		runPhp,
-		screenshotDir,
-	} ) => {
-		const postId = (
-			await runPhp(
-				"$q = get_posts( array( 'post_type' => 'post', 'numberposts' => 1, 'fields' => 'ids' ) ); echo $q ? $q[0] : 0;"
-			)
-		).trim();
-
-		expect( Number( postId ) ).toBeGreaterThan( 0 );
-
+	/** Open a post in the editor, clear the welcome modal, reveal the sidebar. */
+	const openEditor = async ( page, wpBaseUrl, postId ) => {
 		await page.goto(
 			`${ wpBaseUrl }/wp-admin/post.php?post=${ postId }&action=edit`
 		);
 
-		// Wait for the editor canvas before looking for a slotfill inside it.
 		await expect(
 			page.locator( '.edit-post-visual-editor, .editor-visual-editor' )
 		).toBeVisible();
 
-		// Dismiss the welcome modal, which otherwise covers the sidebar.
 		const welcome = page.locator( '.components-modal__screen-overlay' );
 		if ( await welcome.isVisible().catch( () => false ) ) {
 			await page.keyboard.press( 'Escape' );
 			await expect( welcome ).toBeHidden();
 		}
 
-		// The settings sidebar holds the slotfill and can start collapsed, in
-		// which case the toggle is in the DOM but not visible.
-		const sidebar = page.locator(
-			'.edit-post-sidebar, .editor-sidebar, .interface-complementary-area'
-		);
+		const sidebar = page
+			.locator(
+				'.edit-post-sidebar, .editor-sidebar, .interface-complementary-area'
+			)
+			.first();
+
 		if ( ! ( await sidebar.isVisible().catch( () => false ) ) ) {
 			await page
 				.getByRole( 'button', { name: /Settings/i } )
 				.first()
 				.click();
-			await expect( sidebar.first() ).toBeVisible();
+			await expect( sidebar ).toBeVisible();
 		}
 
-		const toggle = page.getByLabel( /^Feature /i ).first();
-		await expect( toggle ).toBeVisible();
+		return sidebar;
+	};
 
-		// The slotfill sits at the bottom of the Summary panel, so it lands on
-		// the very edge of a 900px viewport and the screenshot clips it.
+	/**
+	 * Click the Spotlight toggle.
+	 *
+	 * Scrolls it into view and waits out any snackbar first. The row sits at
+	 * the bottom of the sidebar, which is exactly where WordPress drops its
+	 * snackbar notices, and a covered element makes Playwright wait on
+	 * actionability until the whole test times out - the click reports as a
+	 * timeout on a locator that plainly resolved, which reads like a missing
+	 * control rather than an obscured one.
+	 */
+	const clickToggle = async ( page, toggle ) => {
+		await page
+			.locator( '.components-snackbar-list__notice-container' )
+			.first()
+			.waitFor( { state: 'detached' } )
+			.catch( () => {} );
+
 		await toggle.scrollIntoViewIfNeeded();
+		await toggle.click();
+	};
+
+	const featuredPostId = async ( runPhp ) =>
+		(
+			await runPhp(
+				"$p = get_posts( array( 'post_type' => 'post', 'numberposts' => 1, 'fields' => 'ids', 'tax_query' => array( array( 'taxonomy' => 'pts_feature_tax', 'field' => 'slug', 'terms' => 'featured' ) ) ) ); echo $p ? $p[0] : 0;"
+			)
+		).trim();
+
+	test( 'renders Spotlight as a Summary panel row', async ( {
+		page,
+		wpBaseUrl,
+		runPhp,
+		screenshotDir,
+	} ) => {
+		const sidebar = await openEditor(
+			page,
+			wpBaseUrl,
+			await featuredPostId( runPhp )
+		);
+
+		const toggle = page.locator( '.pts-spotlight__toggle' );
+		await expect( toggle ).toBeVisible();
+		await expect( toggle ).toHaveText( 'Featured' );
+
+		// It has to be a real editor-post-panel__row, not a lookalike: that
+		// class is what puts the label in the same column as Status and
+		// Format, and it comes from core's stylesheet rather than ours.
+		const row = page.locator( '.editor-post-panel__row', { has: toggle } );
+		await expect(
+			row.locator( '.editor-post-panel__row-label' )
+		).toHaveText( 'Spotlight' );
+
+		// Label columns must line up with the core rows. If our markup drifts
+		// from core's, this is what catches it.
+		const ours = await row
+			.locator( '.editor-post-panel__row-label' )
+			.boundingBox();
+		const status = await page
+			.locator( '.editor-post-panel__row-label', { hasText: 'Status' } )
+			.first()
+			.boundingBox();
+		expect( Math.abs( ours.x - status.x ) ).toBeLessThan( 2 );
+		expect( Math.abs( ours.width - status.width ) ).toBeLessThan( 2 );
+
+		// The mark must be constrained. Passed to Button's icon prop it renders
+		// as <LogoMark size={24} /> with no width or height at all, and an
+		// unconstrained SVG pushed the button's own label out of view.
+		const icon = await toggle.locator( 'svg' ).boundingBox();
+		expect( icon.width ).toBeLessThanOrEqual( 28 );
+		expect( icon.height ).toBeLessThanOrEqual( 28 );
+
+		// A truthy aria-pressed makes WordPress paint its dark is-pressed pill,
+		// which is wrong for a value sitting in a column of blue values.
+		await expect( toggle ).not.toHaveClass( /is-pressed/ );
 
 		await page.screenshot( {
-			path: path.join(
-				screenshotDir,
-				'block-editor-featured-toggle.png'
-			),
-			fullPage: false,
+			path: path.join( screenshotDir, 'editor-spotlight-featured.png' ),
 			animations: 'disabled',
 		} );
+		await sidebar.screenshot( {
+			path: path.join( screenshotDir, 'editor-sidebar-featured.png' ),
+			animations: 'disabled',
+		} );
+	} );
+
+	test( 'toggles between Featured and Not featured on click', async ( {
+		page,
+		wpBaseUrl,
+		runPhp,
+		screenshotDir,
+	} ) => {
+		const sidebar = await openEditor(
+			page,
+			wpBaseUrl,
+			await featuredPostId( runPhp )
+		);
+
+		const toggle = page.locator( '.pts-spotlight__toggle' );
+		await expect( toggle ).toHaveText( 'Featured' );
+
+		// One click, not a popover: this is a binary value.
+		await clickToggle( page, toggle );
+		await expect( toggle ).toHaveText( 'Not featured' );
+
+		// The label carries the state, so the mark goes with it.
+		await expect( toggle.locator( 'svg' ) ).toHaveCount( 0 );
+
+		await sidebar.screenshot( {
+			path: path.join( screenshotDir, 'editor-sidebar-not-featured.png' ),
+			animations: 'disabled',
+		} );
+
+		await clickToggle( page, toggle );
+		await expect( toggle ).toHaveText( 'Featured' );
+		await expect( toggle.locator( 'svg' ) ).toHaveCount( 1 );
 
 		const body = await page.textContent( 'body' );
 		expect( body ).not.toContain( 'Fatal error' );
