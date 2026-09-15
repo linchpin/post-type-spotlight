@@ -58,7 +58,7 @@
     "email": "sayhi@linchpin.com"
   },
   "engines": {
-    "node": ">=20.20.2"
+    "node": ">=24.21.0"
   },
   "browserslist": [
     "defaults"
@@ -66,8 +66,8 @@
   "overrides": {
     "serialize-javascript": "^7.1.1",
     "minimatch": "^10.2.6",
-    "markdown-it": "^14.3.2",
-    "linkify-it": "^5.0.2",
+    "markdown-it": "^15.0.2",
+    "linkify-it": "^6.1.0",
     "extract-zip": "^2.0.1",
     "tmp": "^0.2.7"
   }
