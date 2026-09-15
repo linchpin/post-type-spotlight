@@ -299,6 +299,42 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 			);
 
 			wp_enqueue_script( 'post-type-spotlight-block-editor' );
+
+			$this->block_styles();
+		}
+
+		/**
+		 * Put the Spotlight row on the same rhythm as the rows above it.
+		 *
+		 * PluginPostStatusInfo wraps every fill in a PanelRow, so the Spotlight
+		 * row arrives in the Summary panel inside a `.components-panel__row`
+		 * that the core rows - Status, Publish, Slug, Author, Template,
+		 * Discussion, Format - do not have. That wrapper carries `margin-top:
+		 * 8px` and `min-height: 36px`, which is 9px more than the 4px the panel
+		 * stack already puts between its rows, and reads as the Spotlight row
+		 * having drifted away from the group.
+		 *
+		 * Zeroing the wrapper hands layout back to the `editor-post-panel__row`
+		 * inside it, which is the same element core uses, so the row lands on
+		 * the stack gap like everything else.
+		 *
+		 * Registered against a handle with no source because these few rules do
+		 * not warrant a stylesheet, a build entry or a second HTTP request; the
+		 * `false` source is the documented way to attach inline CSS on its own.
+		 *
+		 * @since 3.1.0
+		 *
+		 * @return void
+		 */
+		private function block_styles() {
+
+			wp_register_style( 'post-type-spotlight-block-editor', false, [], POST_TYPE_SPOTLIGHT_VERSION );
+			wp_enqueue_style( 'post-type-spotlight-block-editor' );
+
+			wp_add_inline_style(
+				'post-type-spotlight-block-editor',
+				'.components-panel__row.pts-post-settings-panel{display:block;margin-top:0;min-height:0}'
+			);
 		}
 
 		/**
