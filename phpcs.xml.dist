@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<ruleset name="Post Type Spotlight">
+	<description>Apply Linchpin coding standards with Post Type Spotlight overrides.</description>
+
+	<!--
+		Generic.Functions.CallTimePassByReference is deprecated in PHPCS since
+		3.12.1 and removed in 4.0. Linchpin-Minimum still references it, and the
+		resulting deprecation banner is printed to stdout AHEAD of the JSON
+		payload, so Linchpin\Composer\Actions cannot decode its own report -
+		which breaks both the pre-commit hook and the check-branch-cs step that
+		php-checks.yml runs in CI. The full Linchpin ruleset already excludes
+		this sniff; Linchpin-Minimum does not. Drop this once that is fixed
+		upstream.
+	-->
+	<rule ref="Linchpin-Minimum">
+		<exclude name="Generic.Functions.CallTimePassByReference"/>
+	</rule>
+
+	<!-- Only scan the plugin's own PHP sources. -->
+	<file>./post-type-spotlight.php</file>
+	<file>./class-post-type-spotlight.php</file>
+	<file>./class-post-type-spotlight-block-editor.php</file>
+	<file>./class-pts-featured-posts-widget.php</file>
+
+	<exclude-pattern>./blocks/build/*</exclude-pattern>
+	<exclude-pattern>./blocks/node_modules/*</exclude-pattern>
+	<exclude-pattern>./node_modules/*</exclude-pattern>
+	<exclude-pattern>./vendor/*</exclude-pattern>
+
+	<arg name="basepath" value="."/>
+	<arg name="colors"/>
+
+	<!--
+		The runtime floor, not the toolchain floor. Composer resolves dev
+		dependencies against PHP 8.2, but the plugin still ships to
+		WordPress.org hosts on 7.4, so PHPCompatibility has to keep checking
+		against 7.4. Overrides the 8.2-8.4 default inside the Linchpin ruleset,
+		so it has to come after the rule ref above.
+	-->
+	<config name="testVersion" value="7.4-"/>
+	<config name="minimum_supported_wp_version" value="5.9"/>
+
+	<!--
+		Restrict global prefixes to this plugin.
+
+		`pts` is deliberately absent: WPCS discards any prefix under four characters,
+		and a list containing only discarded prefixes disables the sniff outright
+		rather than failing loudly. The legacy `pts_`-prefixed hooks are public API,
+		so they carry a targeted ignore at their call site instead.
+	-->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="post_type_spotlight"/>
+				<element value="POST_TYPE_SPOTLIGHT"/>
+				<element value="Post_Type_Spotlight"/>
+				<element value="PTS_Featured_Posts_Widget"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Enforce the plugin text domain. -->
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="post-type-spotlight"/>
+			</property>
+		</properties>
+	</rule>
+</ruleset>

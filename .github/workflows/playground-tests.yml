@@ -1,0 +1,224 @@
+name: Playground Tests
+
+# Boots the plugin in WordPress Playground, drives its real admin screens, and
+# posts the resulting screenshots back to the pull request. Mirrors the shape
+# mantle uses; see that repository for the reasoning behind the cache keys and
+# the deliberate absence of a `push` trigger.
+
+on:
+  pull_request:
+    paths:
+      - '**.php'
+      - 'blocks/src/**'
+      - 'blueprint.json'
+      - 'tests/playground/**'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/playground-tests.yml'
+  workflow_dispatch:
+
+# No `push` trigger on purpose: post-screenshots needs a pull request to
+# comment on, and a push to main has none.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  playground:
+    name: Playground (WP ${{ matrix.wp-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    # Branch-based, so it works on both event types and survives a manual re-run.
+    if: >-
+      !startsWith(github.head_ref || github.ref_name, 'release-please--') &&
+      github.event.pull_request.draft != true
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Must be >= the plugin's `Requires at least`, or the blueprint cannot
+        # activate it and every spec fails to boot.
+        wp-version: ['7.1']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+          tools: composer:v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        run: npm run build
+
+      # Keyed on the Playwright version rather than a hash of the lockfile,
+      # which would bust the cache on any unrelated dependency bump.
+      - name: Resolve the Playwright version
+        id: pw
+        run: |
+          echo "version=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+
+      # No `--with-deps`: it runs apt-get on every run, cannot be cached, and
+      # the ubuntu-latest image already ships what headless Chromium needs.
+      - name: Install Playwright browsers
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        run: npx playwright install chromium
+
+      - name: Run Playground tests
+        run: npx playwright test --config=tests/playground/playwright.config.ts
+        env:
+          WP_VERSIONS: ${{ matrix.wp-version }}
+          CI: true
+
+      - name: Upload screenshots
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-wp-${{ matrix.wp-version }}
+          path: test-results/screenshots/
+          retention-days: 30
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-wp-${{ matrix.wp-version }}
+          path: test-results/playwright-report/
+          retention-days: 7
+
+      # The screenshots are already on this runner, written by the specs to
+      # test-results/screenshots/wp-<version>/. Read them in place rather than
+      # round-tripping through download-artifact, which flattens a single-match
+      # pattern and silently changes the path depth.
+      - name: Upload screenshots to R2
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_SCREENSHOTS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SCREENSHOTS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ENDPOINT_URL: ${{ secrets.R2_SCREENSHOTS_ENDPOINT_URL }}
+          R2_BUCKET_NAME: ${{ secrets.R2_SCREENSHOTS_BUCKET_NAME }}
+          WP_VERSION: ${{ matrix.wp-version }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${AWS_ACCESS_KEY_ID:-}" ] || [ -z "${R2_ENDPOINT_URL:-}" ]; then
+            echo "R2 credentials not configured. Skipping R2 upload."
+            exit 0
+          fi
+
+          SRC="test-results/screenshots/wp-${WP_VERSION}"
+
+          if [ ! -d "$SRC" ] || [ -z "$(ls -A "$SRC" 2>/dev/null)" ]; then
+            echo "::warning::No screenshots found at ${SRC}"
+            exit 0
+          fi
+
+          DEST="s3://${R2_BUCKET_NAME}/screenshots/post-type-spotlight/pr-${PR_NUMBER}/run-${GITHUB_RUN_ID}/wp-${WP_VERSION}/"
+          echo "Uploading $(ls -1 "$SRC" | wc -l) screenshot(s) to ${DEST}"
+
+          aws s3 sync "$SRC" "$DEST" \
+            --endpoint-url "${R2_ENDPOINT_URL}" \
+            --content-type "image/png" \
+            --no-progress
+
+      - name: Post screenshots to the PR
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        uses: actions/github-script@v7
+        env:
+          R2_PUBLIC_URL: ${{ secrets.R2_SCREENSHOTS_PUBLIC_URL }}
+          WP_VERSION: ${{ matrix.wp-version }}
+        with:
+          script: |
+            const fs = require( 'fs' );
+            const path = require( 'path' );
+
+            const version = process.env.WP_VERSION;
+            const r2PublicUrl = process.env.R2_PUBLIC_URL;
+            const runUrl = `${ process.env.GITHUB_SERVER_URL }/${ process.env.GITHUB_REPOSITORY }/actions/runs/${ process.env.GITHUB_RUN_ID }`;
+            const prNumber = context.issue.number;
+            const runId = process.env.GITHUB_RUN_ID;
+
+            // Keyed per WP version so a multi-version matrix leaves one comment
+            // per leg instead of racing over a single shared one.
+            const marker = `## Playground Screenshots (WP ${ version })`;
+            const dir = path.join( 'test-results', 'screenshots', `wp-${ version }` );
+
+            const files = fs.existsSync( dir )
+                ? fs.readdirSync( dir ).filter( ( f ) => f.endsWith( '.png' ) ).sort()
+                : [];
+
+            let body = `${ marker }\n\n`;
+
+            if ( ! files.length ) {
+                body += '_No screenshots were captured — the Playground tests likely failed before reaching them._\n';
+            } else if ( ! r2PublicUrl ) {
+                body += `${ files.length } screenshot(s) captured. R2 is not configured, so they are available as [workflow artifacts](${ runUrl }).\n`;
+            } else {
+                const prefix = `${ r2PublicUrl }/screenshots/post-type-spotlight/pr-${ prNumber }/run-${ runId }/wp-${ version }`;
+                body += '<details open>\n';
+                body += `<summary>View ${ files.length } screenshot(s)</summary>\n\n`;
+                for ( const file of files ) {
+                    const name = file.replace( '.png', '' ).replace( /-/g, ' ' );
+                    body += `**${ name }**\n\n![${ name }](${ prefix }/${ file })\n\n`;
+                }
+                body += '</details>\n';
+            }
+
+            body += `\n---\n_Generated by [Playground Tests](${ runUrl }) | [Download artifacts](${ runUrl })_`;
+
+            const { data: comments } = await github.rest.issues.listComments( {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+            } );
+
+            const existing = comments.find(
+                ( c ) => c.body && c.body.startsWith( marker )
+            );
+
+            if ( existing ) {
+                await github.rest.issues.updateComment( {
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    comment_id: existing.id,
+                    body,
+                } );
+            } else {
+                await github.rest.issues.createComment( {
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: prNumber,
+                    body,
+                } );
+            }

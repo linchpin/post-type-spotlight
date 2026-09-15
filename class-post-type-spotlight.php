@@ -17,7 +17,6 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 		 * Post_Type_Spotlight constructor.
 		 */
 		public function __construct() {
-			add_action( 'plugins_loaded', array( $this, 'plugins_loaded' ) );
 			add_action( 'init', array( $this, 'init' ) );
 			add_action( 'widgets_init', array( $this, 'widgets_init' ) );
 
@@ -38,39 +37,6 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 
 		}
 
-
-		/**
-		 * @since 2.3.0
-		 */
-		public function enqueue_block_editor_scripts() {
-
-			$asset_file = include POST_TYPE_SPOTLIGHT_PATH . 'build/index.asset.php';
-
-			wp_enqueue_script(
-				'post-type-spotlight',
-				plugins_url( 'build/index.js', POST_TYPE_SPOTLIGHT_FILE ),
-				array_merge( $asset_file['dependencies'], array( 'wp-plugins', 'wp-edit-post', 'wp-element', 'wp-plugins', 'wp-i18n', 'wp-components' ) ),
-				$asset_file['version'],
-				true
-			);
-
-			$post_types = get_option( 'pts_featured_post_types_settings', array() );
-
-			$data = array( 'post_types' => (array) $post_types );
-
-			wp_localize_script( 'post-type-spotlight', 'pts_data', $data );
-		}
-
-		/**
-		 * Setup our text domain after plugins are confirmed loaded
-		 */
-		public function plugins_loaded() {
-			load_plugin_textdomain(
-				'post-type-spotlight',
-				false,
-				POST_TYPE_SPOTLIGHT_PATH . 'languages/'
-			);
-		}
 
 		/**
 		 * init function.
@@ -253,7 +219,8 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 					'post_status'    => 'any',
 					'meta_query'     => array(
 						array(
-							'key' => '_pts_featured_post',
+							'key'     => '_pts_featured_post',
+							'compare' => 'EXISTS',
 						),
 					),
 					'cache_results'  => false,
@@ -311,18 +278,29 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 		/**
 		 * sanitize_settings function.
 		 *
+		 * The settings field is named `pts_featured_post_types[]` while the option it
+		 * saves to is `pts_featured_post_types_settings`, so the `$input` WordPress
+		 * hands this callback is always empty — the submitted value has to be read
+		 * from the field the form actually posts. Renaming either one would orphan
+		 * every existing site's saved setting, so the mismatch stays.
+		 *
 		 * @access public
-		 * @param  mixed $input
-		 * @return mixed
+		 * @param  mixed $input Value for the registered option. Always empty here; see above.
+		 * @return array Post type slugs that exist on this site.
 		 */
 		public function sanitize_settings( $input ) {
-			$input = wp_parse_args( $_POST['pts_featured_post_types'], array() );
+			// Nonce is verified by options.php before it dispatches to this sanitize callback.
+			// phpcs:disable Linchpin.Security.NonceVerification.Missing
+			$submitted = isset( $_POST['pts_featured_post_types'] )
+				? array_map( 'sanitize_text_field', (array) wp_unslash( $_POST['pts_featured_post_types'] ) )
+				: array();
+			// phpcs:enable Linchpin.Security.NonceVerification.Missing
 
 			$new_input = array();
 
-			foreach ( $input as $pt ) {
-				if ( post_type_exists( sanitize_text_field( $pt ) ) ) {
-					$new_input[] = sanitize_text_field( $pt );
+			foreach ( $submitted as $pt ) {
+				if ( post_type_exists( $pt ) ) {
+					$new_input[] = $pt;
 				}
 			}
 
@@ -367,7 +345,13 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			?>
 			<div class="misc-pub-section lp-featured-post">
 				<span>
-					<?php echo esc_html( apply_filters( 'pts_featured_checkbox_text', 'Feature this ' . $pt->labels->singular_name . ':', $post ) ); ?></span>&nbsp
+					<?php
+					// Public filter shipped since 1.0. The `pts_` prefix is under the four
+					// character minimum WPCS enforces, but renaming it would break every
+					// site already hooking it.
+					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+					echo esc_html( apply_filters( 'pts_featured_checkbox_text', 'Feature this ' . $pt->labels->singular_name . ':', $post ) );
+					?></span>&nbsp
 					<input type="checkbox" name="_pts_featured_post" id="_pts_featured_post" <?php checked( has_term( 'featured', 'pts_feature_tax', $post->ID ) ); ?> />
 			</div>
 			<?php
@@ -472,13 +456,36 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 				$count = 0;
 			}
 
-			$link = '<a href="edit.php?post_type=' . get_post_type() . '&pts_feature_tax=featured"';
+			/*
+			 * `taxonomy` + `term`, not `pts_feature_tax=featured`.
+			 *
+			 * The taxonomy is registered with 'query_var' => false, so
+			 * edit.php never read the shorter form and this link quietly
+			 * listed every post instead of the featured ones. The pair below
+			 * is what wp_edit_posts_query() actually honours.
+			 */
+			$url = add_query_arg(
+				array(
+					'post_type' => get_post_type(),
+					'taxonomy'  => 'pts_feature_tax',
+					'term'      => 'featured',
+				),
+				admin_url( 'edit.php' )
+			);
 
-			if ( isset( $_GET['pts_feature_tax'] ) && 'featured' === $_GET['pts_feature_tax'] ) {
+			$link = '<a href="' . esc_url( $url ) . '"';
+
+			// Read-only check on an admin list table filter, to mark the current view. No state changes.
+			// phpcs:disable Linchpin.Security.NonceVerification.Recommended
+			$is_current = ( isset( $_GET['taxonomy'] ) && 'pts_feature_tax' === $_GET['taxonomy'] )
+				|| ( isset( $_GET['pts_feature_tax'] ) && 'featured' === $_GET['pts_feature_tax'] );
+			// phpcs:enable Linchpin.Security.NonceVerification.Recommended
+
+			if ( $is_current ) {
 				$link .= ' class="current"';
 			}
 
-			$link .= '>Featured</a> <span class="count">(' . $count . ')</span>';
+			$link .= '>' . esc_html__( 'Featured', 'post-type-spotlight' ) . '</a> <span class="count">(' . absint( $count ) . ')</span>';
 
 			return array_merge( $views, array( 'featured' => $link ) );
 		}
@@ -501,7 +508,11 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 				return;
 			}
 
-			if ( isset( $_POST['_pts_featured_post_noncename'] ) && wp_verify_nonce( $_POST['_pts_featured_post_noncename'], '_pts_featured_post_nonce' ) ) {
+			$nonce = isset( $_POST['_pts_featured_post_noncename'] )
+				? sanitize_text_field( wp_unslash( $_POST['_pts_featured_post_noncename'] ) )
+				: '';
+
+			if ( $nonce && wp_verify_nonce( $nonce, '_pts_featured_post_nonce' ) ) {
 
 				if ( isset( $_POST['_pts_featured_post'] ) && ! empty( $_POST['_pts_featured_post'] ) ) {
 					delete_post_meta( $post_id, '_pts_featured_post' );

@@ -1,0 +1,17 @@
+name: WordPress Version Checker
+
+# Opens an issue when the plugin's "Tested up to" header falls behind
+# WordPress. Cron only — a push trigger just re-checks the same header.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  wp-version-checker:
+    uses: linchpin/actions/.github/workflows/wp-version-checker.yml@v4

@@ -1,36 +1,70 @@
-.babelrc
-.codeclimate.yml
-.distignore
-.gitattributes
-.gitignore
-.git
-.release-please-manifest.json
-.php-cs-fixer.dist.php
-.vipgoci_lint_skip_folders
-.vipgoci_phpcs_skip_folders
-.phplint.yml
-composer.json
-composer.lock
-package.json
-package-lock.json
-phpcs.xml
-phpdoc.dist.xml
-phpunit.xml
-release-please-config.json
-renovate.json
-webpack.config.js
-node_modules
-blocks/src
-blocks/node_modules
-blocks/package.json
-blocks/package-lock.json
-.wordpress-org
-.husky
-.github
-.deployment
-zip
-src
-DOCKER_ENV
-output.log
-docker_tagg
+# Everything that must not reach WordPress.org or a release zip.
+#
+# scripts/build.sh and 10up/action-wordpress-plugin-deploy both feed this
+# straight to rsync, so this file is the only exclusion list - there is no
+# .gitattributes export-ignore to keep in sync.
+#
+# Leading slashes matter. rsync matches an unanchored pattern at EVERY depth,
+# so a bare `build` also excludes `blocks/build`, which the plugin loads at
+# runtime - that shipped a plugin whose editor panel never rendered. Anchor
+# anything whose name repeats deeper in the tree.
 
+# VCS and CI
+/.git
+/.github
+/.gitignore
+/.gitattributes
+/.husky
+/.editorconfig
+/.nvmrc
+/.distignore
+/.prettierignore
+
+# Build tooling and manifests
+/blocks/src
+/build
+/composer.json
+/composer.lock
+/node_modules
+/package.json
+/package-lock.json
+/scripts
+/commitlint.config.js
+
+# Composer only supplies composer/installers here, which is an install-time
+# plugin. No PHP in this plugin loads vendor/autoload.php, so nothing in
+# vendor/ is needed at runtime.
+/vendor
+
+# Tests and their output
+/tests
+/test-results
+/blueprint.json
+/playwright-report
+
+# Standards and quality config
+/phpcs.xml.dist
+/.phpcs.cache
+/phpcs-report.xml
+/.phpunit.result.cache
+/.php-cs-fixer.cache
+
+# Release, bot and project config
+/.release-please-manifest.json
+/release-please-config.json
+/renovate.json
+/wordpress-version-checker.json
+/.linchpin.json
+
+# Docs and repo assets that are not part of the plugin
+/.wordpress-org
+/docs
+/CHANGELOG.md
+/README.md
+/FAQ.md
+
+# Local noise
+/zip
+*.log
+*.sql
+.DS_Store

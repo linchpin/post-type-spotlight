@@ -1,0 +1,35 @@
+name: WordPress Plugin Check
+
+# Checks the package the wp.org deploy actually ships — composer --no-dev,
+# built assets, .distignore applied — not the raw repository, which would
+# report dozens of dev artifacts that never reach WordPress.org.
+
+on:
+  pull_request:
+    paths:
+      - '**.php'
+      - 'blocks/src/**'
+      - 'readme.txt'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.distignore'
+      - 'scripts/build.sh'
+      - '.github/workflows/plugin-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  plugin-check:
+    uses: linchpin/actions/.github/workflows/plugin-check.yml@v4
+    secrets: inherit
+    with:
+      build_dir: ./build/post-type-spotlight
+      build_command: |
+        npm ci
+        npm run build
+        bash scripts/build.sh
+      exclude_directories: vendor

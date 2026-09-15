@@ -14,12 +14,7 @@
 				"readme.txt",
         "CHANGELOG.md",
 				"README.md",
-				".release-please-manifest.json",
-				{
-					"type": "json",
-					"path": "blocks/package.json",
-					"jsonpath": "$.version"
-				}
+				".release-please-manifest.json"
 			]
 		}
 	},

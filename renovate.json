@@ -1,38 +1,61 @@
 {
-  "extends": [
-    "config:base"
-  ],
-  "lockFileMaintenance": { "enabled": true },
-  "ignoreDeps": [ "husky" ],
-  "labels": [ "type: dependencies", "maintenance" ],
-  "packageRules": [
-    {
-      "updateTypes": [ "minor", "patch", "pin", "digest" ],
-      "matchManagers": [ "npm" ],
-      "groupName": [ "npm frontend" ],
-      "automerge": true
-    },
-    {
-      "updateTypes": [ "major", "minor", "patch", "pin", "digest" ],
-      "depTypeList": [ "devDependencies" ],
-      "groupName": [ "npm dev dependencies" ],
-      "automerge": true
-    },
-    {
-      "updateTypes": [ "major", "minor", "patch", "pin", "digest" ],
-      "depTypeList": [ "devDependencies" ],
-      "matchManagers": [ "composer" ],
-      "automerge": true,
-      "groupName": [ "composer dev dependencies" ]
-    },
-    {
-      "updateTypes": [ "major", "minor", "patch", "pin", "digest" ],
-      "depTypeList": [ "dependencies" ],
-      "matchManagers": [ "composer" ],
-      "automerge": true,
-      "groupName": [ "composer" ]
-    }
-  ],
-  "rebaseWhen": "conflicted",
-  "rangeStrategy": "bump"
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"description": [
+		"config:recommended rather than github>linchpin/renovatebot-config: the org preset sets baseBranches to /^maintenance\\/.*/, which is the site-fleet shape. This plugin releases off main, so the preset would find no base branch and do nothing. Every Linchpin plugin repo (mantle, block-alchemy, linchpin-blocks) does the same.",
+		"Fix a transitive advisory in this order. (1) Let lockFileMaintenance reach it - that works whenever the parent's range already allows the patched version. (2) Only when a parent pins the vulnerable version, add ONE scoped override naming that parent. Never a bare top-level override unless the package is stuck everywhere.",
+		"Always re-run npm ci and npm audit after touching overrides. npm will not re-resolve an already-locked nested entry on npm install, so a new override can silently do nothing and a bad one desyncs the lockfile.",
+		"An override is a standing liability, not a fix. Each entry is a promise to re-check the parent; delete it once the parent ships the fix itself."
+	],
+	"extends": ["config:recommended"],
+	"lockFileMaintenance": {
+		"enabled": true,
+		"automerge": true
+	},
+	"ignoreDeps": ["husky"],
+	"labels": ["type: dependencies", "maintenance"],
+	"constraints": {
+		"php": "8.2"
+	},
+	"packageRules": [
+		{
+			"description": "composer.json allows PHP >= 7.4 for the shipped plugin while config.platform.php pins the toolchain to 8.2. Without the constraint above, Renovate resolves dev dependencies against the wider range and proposes packages composer can never install here.",
+			"matchManagers": ["composer"],
+			"matchDepTypes": ["require-dev"],
+			"matchUpdateTypes": ["major", "minor", "patch", "pin", "digest"],
+			"groupName": "composer dev dependencies",
+			"automerge": true
+		},
+		{
+			"matchManagers": ["composer"],
+			"matchDepTypes": ["require"],
+			"matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+			"groupName": "composer",
+			"automerge": true
+		},
+		{
+			"description": "The PHP floor is a product decision with support implications. Never let a bot move it.",
+			"matchManagers": ["composer"],
+			"matchPackageNames": ["php"],
+			"enabled": false
+		},
+		{
+			"matchManagers": ["npm"],
+			"matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+			"groupName": "npm dev dependencies",
+			"automerge": true
+		},
+		{
+			"matchManagers": ["npm"],
+			"matchUpdateTypes": ["major"],
+			"groupName": "npm dev dependencies (major)",
+			"automerge": false
+		},
+		{
+			"matchManagers": ["github-actions"],
+			"groupName": "github actions",
+			"automerge": true
+		}
+	],
+	"rebaseWhen": "conflicted",
+	"rangeStrategy": "bump"
 }

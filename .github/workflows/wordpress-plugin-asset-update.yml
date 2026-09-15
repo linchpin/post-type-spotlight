@@ -1,0 +1,39 @@
+name: Update asset/readme on WordPress.org
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'readme.txt'
+      - '.wordpress-org/**'
+      - '.github/workflows/wordpress-plugin-asset-update.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  assets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Strip the release-please markers from readme.txt
+        # Without this the marker lines render as literal text in the Stable
+        # tag block on the WordPress.org listing.
+        # TODO: replace with linchpin/actions/actions/strip-release-markers@v4
+        # once linchpin/actions#178 lands in a v4 release. Kept inline until
+        # then so this workflow does not reference an action that does not
+        # exist yet.
+        run: |
+          sed -i '/x-release-please-start-version/d' ./readme.txt
+          sed -i '/x-release-please-end/d' ./readme.txt
+          echo "Removed release-please marker lines from readme.txt"
+
+      - name: WordPress.org plugin asset/readme update
+        uses: 10up/action-wordpress-plugin-asset-update@2480306f6f693672726d08b5917ea114cb2825f7 # v2.2.0
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: post-type-spotlight
