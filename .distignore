@@ -18,6 +18,7 @@
 /.editorconfig
 /.nvmrc
 /.distignore
+/.prettierignore
 
 # Build tooling and manifests
 /blocks/src
