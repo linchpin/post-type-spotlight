@@ -195,7 +195,6 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 					}
 				}
 
-				add_action( 'pre_get_posts', array( $this, 'filter_featured_view' ) );
 
 				// The media list table has no Quick Edit, so attachments are skipped.
 				if ( array_diff( (array) $featured_pts, array( 'attachment' ) ) ) {
@@ -435,7 +434,15 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 				<div class="inline-edit-col">
 					<label class="alignleft lp-featured-post">
 						<input type="checkbox" name="_pts_featured_post" id="_pts_featured_post" value="1" />
-						<span class="checkbox-title"><?php echo esc_html( apply_filters( 'pts_featured_checkbox_text', 'Feature this ' . $pt->labels->singular_name, null ) ); ?></span>
+						<span class="checkbox-title">
+							<?php
+							// Public filter shipped since 1.0. The `pts_` prefix is under the
+							// four character minimum WPCS enforces, but renaming it would break
+							// every site already hooking it.
+							// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+							echo esc_html( apply_filters( 'pts_featured_checkbox_text', 'Feature this ' . $pt->labels->singular_name, null ) );
+							?>
+						</span>
 					</label>
 				</div>
 			</fieldset>
@@ -546,48 +553,6 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 					}
 				}
 			}
-		}
-
-		/**
-		 * Filter an admin list table down to featured posts for the Featured view.
-		 *
-		 * pts_feature_tax is registered without a query var, and wp_edit_posts_query()
-		 * only forwards a fixed set of arguments to WP_Query, so the request argument
-		 * built by views_addition() has to be turned into a tax query by hand.
-		 *
-		 * @since 3.1.0
-		 *
-		 * @param WP_Query $query The query about to run.
-		 * @return void
-		 */
-		public function filter_featured_view( $query ) {
-			if ( ! is_admin() || ! $query->is_main_query() ) {
-				return;
-			}
-
-			if ( empty( $_GET['pts_feature_tax'] ) || 'featured' !== $_GET['pts_feature_tax'] ) {
-				return;
-			}
-
-			$settings = get_option( 'pts_featured_post_types_settings', array() );
-
-			if ( ! in_array( $query->get( 'post_type' ), (array) $settings, true ) ) {
-				return;
-			}
-
-			$tax_query = $query->get( 'tax_query' );
-
-			if ( empty( $tax_query ) ) {
-				$tax_query = array();
-			}
-
-			$tax_query[] = array(
-				'taxonomy' => 'pts_feature_tax',
-				'field'    => 'slug',
-				'terms'    => array( 'featured' ),
-			);
-
-			$query->set( 'tax_query', $tax_query );
 		}
 
 		/**
