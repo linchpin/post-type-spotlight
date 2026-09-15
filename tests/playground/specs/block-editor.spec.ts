@@ -41,6 +41,27 @@ test.describe( 'Block editor', () => {
 		return sidebar;
 	};
 
+	/**
+	 * Click the Spotlight toggle.
+	 *
+	 * Scrolls it into view and waits out any snackbar first. The row sits at
+	 * the bottom of the sidebar, which is exactly where WordPress drops its
+	 * snackbar notices, and a covered element makes Playwright wait on
+	 * actionability until the whole test times out - the click reports as a
+	 * timeout on a locator that plainly resolved, which reads like a missing
+	 * control rather than an obscured one.
+	 */
+	const clickToggle = async ( page, toggle ) => {
+		await page
+			.locator( '.components-snackbar-list__notice-container' )
+			.first()
+			.waitFor( { state: 'detached' } )
+			.catch( () => {} );
+
+		await toggle.scrollIntoViewIfNeeded();
+		await toggle.click();
+	};
+
 	const featuredPostId = async ( runPhp ) =>
 		(
 			await runPhp(
@@ -121,7 +142,7 @@ test.describe( 'Block editor', () => {
 		await expect( toggle ).toHaveText( 'Featured' );
 
 		// One click, not a popover: this is a binary value.
-		await toggle.click();
+		await clickToggle( page, toggle );
 		await expect( toggle ).toHaveText( 'Not featured' );
 
 		// The label carries the state, so the mark goes with it.
@@ -132,7 +153,7 @@ test.describe( 'Block editor', () => {
 			animations: 'disabled',
 		} );
 
-		await toggle.click();
+		await clickToggle( page, toggle );
 		await expect( toggle ).toHaveText( 'Featured' );
 		await expect( toggle.locator( 'svg' ) ).toHaveCount( 1 );
 
