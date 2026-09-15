@@ -116,6 +116,35 @@ test.describe( 'Block editor', () => {
 		// which is wrong for a value sitting in a column of blue values.
 		await expect( toggle ).not.toHaveClass( /is-pressed/ );
 
+		// The row has to sit on the same vertical rhythm as the rows above it.
+		// PluginPostStatusInfo wraps every fill in a `.components-panel__row`,
+		// which carries `margin-top: 8px` and `min-height: 36px` that the core
+		// rows do not have, and left alone it pushes Spotlight visibly away
+		// from the group. The inline style in the block editor class zeroes it.
+		const rowBox = await row.boundingBox();
+		const format = page
+			.locator( '.editor-post-panel__row', { hasText: 'Format' } )
+			.first();
+		const formatBox = await format.boundingBox();
+		const discussion = await page
+			.locator( '.editor-post-panel__row', { hasText: 'Discussion' } )
+			.first()
+			.boundingBox();
+
+		const coreStep = formatBox.y - discussion.y;
+		const ourStep = rowBox.y - formatBox.y;
+		expect( Math.abs( ourStep - coreStep ) ).toBeLessThan( 3 );
+
+		// And the control itself should be the height core's own icon-bearing
+		// row is, rather than the taller default a compact Button would take.
+		const statusRowBox = await page
+			.locator( '.editor-post-panel__row', { hasText: 'Status' } )
+			.first()
+			.boundingBox();
+		expect( Math.abs( rowBox.height - statusRowBox.height ) ).toBeLessThan(
+			3
+		);
+
 		await page.screenshot( {
 			path: path.join( screenshotDir, 'editor-spotlight-featured.png' ),
 			animations: 'disabled',
