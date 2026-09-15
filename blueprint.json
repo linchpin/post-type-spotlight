@@ -7,7 +7,7 @@
 		},
 		{
 			"step": "runPHP",
-			"code": "<?php require '/wordpress/wp-load.php'; update_option('pts_featured_post_types_settings', array('post','page'));"
+			"code": "<?php require '/wordpress/wp-load.php'; update_option('pts_featured_post_types_settings', array('post','page')); update_user_meta( 1, 'wp_persisted_preferences', array( 'core/edit-post' => array( 'welcomeGuide' => false, 'fullscreenMode' => false ), 'core/editor' => array( 'welcomeGuide' => false ), 'core' => array( 'welcomeGuide' => false ) ) );"
 		},
 		{
 			"step": "runPHP",
