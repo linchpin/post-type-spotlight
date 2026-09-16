@@ -4,7 +4,6 @@
   "description": "Easily allows you to designate posts, pages, attachments and custom post types as featured.",
   "author": "Linchpin <sayhi@linchpin.com>",
   "license": "GPL-2.0-or-later",
-  "private": true,
   "prettier": "@wordpress/prettier-config",
   "scripts": {
     "prepare": "husky",
