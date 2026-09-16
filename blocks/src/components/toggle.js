@@ -5,18 +5,6 @@ import LogoMark from './logo-mark';
 import PanelRow from './panel-row';
 
 /**
- * The mark as the Button icon prop renders it.
- *
- * Button calls its `icon` as `<Icon icon={icon} size={24} />`, so there is no
- * way to pass the monochrome flag through it other than a component that has
- * already applied it.
- *
- * @param {Object} props Props Icon passes through, notably `size`.
- * @return {React.ReactElement} The mark in a single colour.
- */
-const MonochromeMark = ( props ) => <LogoMark { ...props } monochrome />;
-
-/**
  * The Spotlight row in the editor Summary panel.
  *
  * Rendered as a label plus a value button rather than a toggle switch, because
@@ -62,7 +50,7 @@ const PTSToggle = ( props ) => {
 					className="pts-spotlight__toggle"
 					variant="tertiary"
 					size="compact"
-					icon={ isFeatured ? MonochromeMark : undefined }
+					icon={ isFeatured ? LogoMark : undefined }
 					// Core gives its own Status toggle 4px of vertical padding
 					// (.editor-post-status__toggle) so that adding an icon does
 					// not make the row taller than the iconless ones beside it.
