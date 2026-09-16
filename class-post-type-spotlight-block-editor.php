@@ -11,6 +11,41 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 	 */
 	class Post_Type_Spotlight_Block_Editor {
 
+		/**
+		 * Namespace of the Query Loop variation this plugin registers.
+		 *
+		 * Mirrors `VARIATION_NAME` in blocks/src/query-loop/constants.js.
+		 *
+		 * @since 3.2.0
+		 * @var string
+		 */
+		const VARIATION_NAMESPACE = 'post-type-spotlight/featured-list';
+
+		/**
+		 * Query types the variation's Spotlight control can write.
+		 *
+		 * Mirrors the `QUERY_TYPES` export in blocks/src/query-loop/constants.js.
+		 * Anything outside this list is ignored rather than trusted, because the
+		 * value arrives either from saved block markup or from an unregistered
+		 * REST parameter - neither of which WordPress validates for us.
+		 *
+		 * @since 3.2.0
+		 * @var string[]
+		 */
+		const QUERY_TYPES = [ 'featured-only', 'featured-first', 'featured-exclude' ];
+
+		/**
+		 * WP_Query argument that asks for featured posts to be sorted first.
+		 *
+		 * WP_Query keeps query vars it does not recognise, so this travels from
+		 * wherever the query is built through to the `posts_orderby` filter that
+		 * acts on it. That is what lets one flag serve both the front end and the
+		 * editor preview, which build their queries by completely different routes.
+		 *
+		 * @since 3.2.0
+		 * @var string
+		 */
+		const FEATURED_FIRST_QUERY_VAR = 'pts_featured_first';
 
 		public function __construct() {
 
@@ -18,10 +53,13 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 			add_action( 'init', [ $this, 'block_init' ] );
 			add_action( 'enqueue_block_editor_assets', [ $this, 'block_scripts' ] );
 
-			add_filter( 'pre_render_block', [ $this, 'pre_render_block' ], 999, 3 );
+			// Front end: apply the variation's query type where core builds the
+			// Query Loop's WP_Query arguments.
+			add_filter( 'render_block_data', [ $this, 'force_custom_query' ] );
+			add_filter( 'query_loop_block_query_vars', [ $this, 'filter_query_loop_block_query_vars' ], 10, 2 );
 
-			// This is used to sort the featured posts first if selected in the block options
-			add_filter('posts_orderby', [ $this, 'orderby_featured_first' ], 10, 2 );
+			// Both ends: "Featured first" is a sort order rather than a filter.
+			add_filter( 'posts_orderby', [ $this, 'orderby_featured_first' ], 10, 2 );
 
 		}
 
@@ -47,219 +85,214 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 
 
 		/**
-		 * Callback to handle the custom query params. Updates the block editor.
+		 * Apply a Spotlight query type to a set of WP_Query arguments.
 		 *
-		 * @see https://developer.wordpress.org/block-editor/how-to-guides/block-tutorial/extending-the-query-loop-block/
-		 * @see https://github.com/ryanwelcher/advanced-query-loop/blob/trunk/includes/query-loop.php
+		 * The single place the three query types are turned into query arguments,
+		 * shared by the front end and the editor preview so the two cannot drift.
 		 *
-		 * @param array           $args    The query args.
-		 * @param WP_REST_Request $request The request object.
+		 * @since 3.2.0
+		 *
+		 * @param array  $args       WP_Query arguments to add to.
+		 * @param string $query_type One of self::QUERY_TYPES. Anything else is ignored.
+		 *
+		 * @return array The arguments, filtered if the query type was one we handle.
 		 */
-		public function add_custom_query_params( $args, $request ) {
+		private function apply_query_type( $args, $query_type ) {
 
-			// Generate a new custom query with all potential query vars.
-			$custom_args = [];
-
-			$queryType = $request->get_param( 'queryType' );
-
-			if ( $queryType ) {
-				$custom_args['queryType'] = $queryType;
+			if ( ! in_array( $query_type, self::QUERY_TYPES, true ) ) {
+				return $args;
 			}
 
-			// Merge all queries.
-			return array_merge(
-				$args,
-				array_filter( $custom_args )
-			);
+			/*
+			 * "Featured first" reorders the result set rather than narrowing it:
+			 * every post still belongs in it. So it adds no taxonomy clause and
+			 * instead flags the query for orderby_featured_first() below.
+			 */
+			if ( 'featured-first' === $query_type ) {
+				$args[ self::FEATURED_FIRST_QUERY_VAR ] = true;
 
+				return $args;
+			}
+
+			$clause = [
+				'taxonomy'         => 'pts_feature_tax',
+				'field'            => 'slug',
+				'terms'            => [ 'featured' ],
+				'operator'         => 'featured-exclude' === $query_type ? 'NOT IN' : 'IN',
+				'include_children' => false,
+			];
+
+			$existing = isset( $args['tax_query'] ) && is_array( $args['tax_query'] )
+				? array_filter( $args['tax_query'] )
+				: [];
+
+			/*
+			 * Nest rather than append. Core hands us a flat list of clauses for
+			 * most queries, but once post formats are involved it hands us a
+			 * nested one with its own relation; appending to that would bolt this
+			 * clause onto whichever group happened to be last. Wrapping leaves
+			 * whatever core built intact and ANDs this on top of it.
+			 */
+			$args['tax_query'] = empty( $existing )
+				? [ $clause ]
+				: [
+					'relation' => 'AND',
+					$existing,
+					[ $clause ],
+				];
+
+			return $args;
 		}
 
 
 		/**
-		 * Before rendering our block on the front end change it up a bit.
+		 * Keep the Featured List variation on its own query.
+		 *
+		 * An inherited query is the one the template already ran, which core
+		 * renders straight from the global `WP_Query` without ever calling
+		 * `build_query_vars_from_query_block()` - so `query_loop_block_query_vars`
+		 * never fires and the featured filter has nowhere to apply. The variation
+		 * does not offer the Query type control for that reason, but core's
+		 * Settings panel has a Reset all button that sets `inherit` back to true
+		 * regardless, and with the control hidden there would be no way back.
+		 *
+		 * Forcing it false here means a Featured List keeps listing featured posts
+		 * whatever state its markup is in. `render_block_data` is the right place
+		 * because it runs before the block's context is assembled from these same
+		 * attributes, so the Post Template downstream sees the corrected value.
+		 *
+		 * @since 3.2.0
+		 *
+		 * @param array $parsed_block The block about to be rendered.
+		 *
+		 * @return array The block, with an inherited query turned off if it is ours.
+		 */
+		public function force_custom_query( $parsed_block ) {
+
+			if ( ! isset( $parsed_block['attrs']['namespace'] ) || self::VARIATION_NAMESPACE !== $parsed_block['attrs']['namespace'] ) {
+				return $parsed_block;
+			}
+
+			// `attrs` is whatever JSON the block comment carried, so `query` is
+			// only an array by convention. Writing an offset into a string is a
+			// fatal in PHP 8.
+			if ( isset( $parsed_block['attrs']['query'] ) && ! is_array( $parsed_block['attrs']['query'] ) ) {
+				return $parsed_block;
+			}
+
+			$parsed_block['attrs']['query']['inherit'] = false;
+
+			return $parsed_block;
+		}
+
+
+		/**
+		 * Filter the front end Query Loop by the block's Spotlight query type.
+		 *
+		 * The query type travels in the block's `query` attribute, which core
+		 * passes down to the Post Template as block context - so it is readable
+		 * here without the block having to be inspected directly.
+		 *
+		 * Registered once, on every Query Loop, and keyed off that context. The
+		 * previous approach added this filter from `pre_render_block` and never
+		 * removed it, so once a page contained one Featured List every Query Loop
+		 * rendered after it was filtered down to featured posts too.
+		 *
+		 * @since 3.2.0
+		 *
+		 * @param array    $query The query arguments core built for the block.
+		 * @param WP_Block $block The Post Template block being rendered.
+		 *
+		 * @return array The query arguments.
+		 */
+		public function filter_query_loop_block_query_vars( $query, $block ) {
+
+			$query_type = isset( $block->context['query']['queryType'] )
+				? $block->context['query']['queryType']
+				: '';
+
+			if ( ! is_string( $query_type ) ) {
+				return $query;
+			}
+
+			return $this->apply_query_type( $query, $query_type );
+		}
+
+
+		/**
+		 * Filter the editor preview by the block's Spotlight query type.
+		 *
+		 * Core forwards any key it does not recognise in the block's `query`
+		 * attribute to the REST request that draws the preview, so `queryType`
+		 * arrives as a request parameter. It is not a registered parameter, which
+		 * means WordPress neither validates nor sanitises it - apply_query_type()
+		 * only acts on values it recognises, and sanitize_key() keeps anything
+		 * unexpected from reaching it in the first place.
 		 *
 		 * @since 3.0.0
 		 *
-		 * @param $pre_render
-		 * @param $parsed_block
+		 * @param array           $args    The query arguments.
+		 * @param WP_REST_Request $request The request object.
 		 *
-		 * @return mixed
+		 * @return array The query arguments.
 		 */
-		public function pre_render_block( $pre_render, $parsed_block ) {
-			if ( isset( $parsed_block['attrs']['namespace'] ) && 'post-type-spotlight/featured-list' === $parsed_block['attrs']['namespace'] ) {
+		public function filter_request_by_query_type( $args, $request ) {
 
-				// Hijack the global query. It's a hack, but it works.
-				if ( true === $parsed_block['attrs']['query']['inherit'] ) {
-					global $wp_query;
-					$query_args = array_merge(
-						$wp_query->query_vars,
-						array(
-							'posts_per_page' => $parsed_block['attrs']['query']['perPage'],
-							'order'          => $parsed_block['attrs']['query']['order'],
-							'orderby'        => $parsed_block['attrs']['query']['orderBy'],
-						)
-					);
+			$query_type = $request->get_param( 'queryType' );
 
-					$wp_query = new \WP_Query( array_filter( $query_args ) );
-				} else {
-					add_filter(
-						'query_loop_block_query_vars',
-						function( $default_query ) use ( $parsed_block ) {
-							$custom_query = $parsed_block['attrs']['query'];
-
-							$featured_term = get_term_by('slug', 'featured', 'pts_feature_tax');
-							// Generate a new custom query with all potential query vars.
-							$custom_args = [];
-
-
-							$queryType = $parsed_block['attrs']['query']['queryType'];
-
-							$custom_args['tax_query'] = [
-								[
-									'taxonomy' => 'pts_feature_tax',
-									'terms'    => [ $featured_term->term_id ],
-									'operator' => 'IN',
-									'include_children' => false,
-								],
-							];
-
-							if ( $queryType === 'featured-exclude' ) {
-								$custom_args['tax_query'][0]['operator'] = 'NOT IN';
-							}
-
-							if ( ! empty( $default_query['tax_query'] ) ) {
-
-								foreach ( $default_query['tax_query'] as $index => $tax_query ) {
-									if ( $tax_query['taxonomy'] === 'pts_feature_tax' ) {
-										// If somehow they added the pts tax to their query, and it's a block remove
-										// the default since the block does it already.
-										unset( $default_query['tax_query'][ $index ] );
-									}
-								}
-
-								if ( empty( $default_query['tax_query'] ) ) {
-									unset( $default_query['tax_query'] );
-								} else {
-
-									$custom_tax_query = array_merge(
-										$default_query['tax_query'],
-										$custom_args['tax_query']
-									);
-
-								}
-							}
-
-							$data = array_merge(
-								$default_query,
-								$custom_args
-							);
-
-							if ( ! empty( $custom_tax_query ) ) {
-								$data['tax_query'] = $custom_tax_query;
-								if ( count( $custom_tax_query ) > 1 ) {
-									$data['tax_query']['relation'] = 'AND';
-								}
-							}
-
-							return $data;
-						},
-						10,
-						2
-					);
-				}
+			if ( ! is_string( $query_type ) ) {
+				return $args;
 			}
 
-			return $pre_render;
-
-		}
-
-		/**
-		 * When using PTS in the block editor, we need to filter the request
-		 * to order the posts by displayType attribute.
-		 *
-		 * Only Show Featured
-		 * Show Featured First
-		 * Exclude Featured
-		 *
-		 * @param $args
-		 * @param $request
-		 *
-		 * @return void
-		 */
-		public function filter_request_by_query_type(  $args, $request ) {
-			$queryType = $request->get_param( 'queryType' );
-			$custom_args = [];
-
-			if ( ! empty( $queryType ) ) {
-
-				if ( $queryType !== 'featured-first' ) {
-					$custom_args[ 'tax_query' ] = [
-						[
-							'taxonomy'         => 'pts_feature_tax',
-							'field'            => 'slug',
-							'terms'            => [ 'featured' ],
-							'operator'         => 'IN',
-							'include_children' => false,
-						],
-					];
-				}
-
-				if ( $queryType === 'featured-exclude' ) {
-					$custom_args['tax_query'][0]['operator'] = 'NOT IN';
-				}
-			}
-
-			return array_merge( $args, $custom_args );
-
+			return $this->apply_query_type( $args, sanitize_key( $query_type ) );
 		}
 
 
 		/**
-		 * Alter the order by clause to sort featured posts first.
+		 * Sort featured posts to the top of a query that asked for it.
 		 *
-		 * @param $orderby
-		 * @param $query
+		 * Runs on every query, so it returns untouched unless the query carries
+		 * the flag apply_query_type() sets.
 		 *
-		 * @return mixed|string
+		 * @since 3.0.0
+		 *
+		 * @param string   $orderby The ORDER BY clause built so far.
+		 * @param WP_Query $query   The query being run.
+		 *
+		 * @return string The ORDER BY clause.
 		 */
 		public function orderby_featured_first( $orderby, $query ) {
 
+			if ( ! $query->get( self::FEATURED_FIRST_QUERY_VAR ) ) {
+				return $orderby;
+			}
+
+			$term = get_term_by( 'slug', 'featured', 'pts_feature_tax' );
+
+			if ( ! $term instanceof WP_Term ) {
+				return $orderby;
+			}
+
 			global $wpdb;
 
-			// Read-only query variable set by the block on the REST request. Read-only and
-			// used only to pick a sort order, so there is no state change to protect.
-			// phpcs:disable Linchpin.Security.NonceVerification.Recommended
-			if ( ! isset( $_REQUEST['queryType'] ) ) {
-				return $orderby;
-			}
+			// EXISTS evaluates to 1 or 0, so sorting on it descending puts the
+			// featured posts above everything else and leaves the order core
+			// asked for to break the tie within each group.
+			$featured_first = $wpdb->prepare(
+				"EXISTS (
+					SELECT 1
+					FROM {$wpdb->term_relationships}
+					WHERE {$wpdb->term_relationships}.object_id = {$wpdb->posts}.ID
+					AND {$wpdb->term_relationships}.term_taxonomy_id = %d
+				) DESC",
+				$term->term_taxonomy_id
+			);
 
-			if ( 'featured-first' !== sanitize_key( wp_unslash( $_REQUEST['queryType'] ) ) ) {
-				return $orderby;
-			}
-			// phpcs:enable Linchpin.Security.NonceVerification.Recommended
-
-			$term = get_term_by('slug', 'featured', 'pts_feature_tax' );
-
-			// If the term doesn't exist or there's an error, just return the original orderby
-			if ( false === $term || is_wp_error( $term ) ) {
-				return $orderby;
-			}
-
-			// Add the custom sorting using the CASE statement directly in the ORDER BY clause
-			$orderby = "
-        CASE
-            WHEN EXISTS (
-                SELECT 1
-                FROM {$wpdb->term_relationships}
-                WHERE {$wpdb->term_relationships}.object_id = {$wpdb->posts}.ID
-                AND {$wpdb->term_relationships}.term_taxonomy_id = {$term->term_taxonomy_id}
-            )
-            THEN 1
-            ELSE 0
-        END DESC, {$orderby}";
-
-			return $orderby;
+			// An `orderby` of `none` leaves this empty, and a trailing comma
+			// would be a syntax error.
+			return '' === trim( (string) $orderby ) ? $featured_first : "{$featured_first}, {$orderby}";
 		}
+
 
 
 		/**

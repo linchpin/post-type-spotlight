@@ -1,43 +1,43 @@
 import { __ } from '@wordpress/i18n';
-
-import LogoMark from '../components/logo-mark';
 import { registerBlockVariation } from '@wordpress/blocks';
 
-import './controls'; // Load out controls
+import LogoMark from '../components/logo-mark';
+import { DEFAULT_QUERY_TYPE, VARIATION_NAME } from './constants';
 
-const VARIATION_NAME = 'post-type-spotlight/featured-list';
+import './controls'; // Load our controls
 
 registerBlockVariation( 'core/query', {
 	name: VARIATION_NAME,
 	title: __( 'Featured List', 'post-type-spotlight' ),
 	description: __(
-		'Displays a list of posts that are marked as featured.',
+		'A Query Loop that shows the posts marked as featured - or everything that is not.',
 		'post-type-spotlight'
 	),
-	isActive: ( { namespace } ) => {
-		return namespace === VARIATION_NAME;
-	},
-	isPTSQueryLoopVariation: ( { namespace } ) => {
-		return namespace === VARIATION_NAME;
-	},
+	isActive: ( { namespace } ) => namespace === VARIATION_NAME,
 	icon: LogoMark,
 	attributes: {
 		namespace: VARIATION_NAME,
 		query: {
 			perPage: 10,
 			pages: 0,
-			paged: 1,
 			offset: 0,
-			postType: 'page',
+			postType: 'post',
 			order: 'desc',
 			orderBy: 'date',
 			author: '',
 			search: '',
 			exclude: [],
 			sticky: '',
+			/*
+			 * An inherited query is the template's own, which core renders
+			 * without ever building WP_Query arguments - so there is no point
+			 * at which the featured filter could be applied. The variation
+			 * always runs its own query, and `inherit` is left out of
+			 * `allowedControls` below so it stays that way.
+			 */
 			inherit: false,
+			queryType: DEFAULT_QUERY_TYPE,
 		},
-		queryType: 'featured-only',
 	},
 	scope: [ 'inserter' ],
 	innerBlocks: [
