@@ -1,11 +1,11 @@
 {
-	"wordpress": {
-		"pluginSlug": "post-type-spotlight",
-		"channel": "wordpress.org"
-	},
-	"notes": [
-		"composer.json pins config.platform.php to 8.2 for the toolchain while require.php stays >=7.4 for what ships. Raise both together, plus Requires PHP in post-type-spotlight.php and readme.txt, and testVersion in phpcs.xml.dist.",
-		"blocks/build is committed on purpose - the plugin loads it at runtime and .distignore does not exclude it.",
-		"Screenshots come from the WordPress Playground suite in tests/playground and are posted to each pull request."
-	]
+  "agent": "claude-code",
+  "agentBasePath": "~/Documents",
+  "wordpress": {
+    "pluginSlug": "post-type-spotlight",
+    "defaultEnvironment": "studio-post-type-spotlight",
+    "environments": {
+      "studio-post-type-spotlight": "~/Studio/post-type-spotlight/wp-content/plugins/post-type-spotlight"
+    }
+  }
 }

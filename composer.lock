@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "953debee1f699e95a6032538a0c8b649",
+    "content-hash": "52a28a36e5de4f9b08aede70b8a2b5d2",
     "packages": [
         {
             "name": "composer/installers",
@@ -363,16 +363,16 @@
         },
         {
             "name": "linchpin/coding-standards",
-            "version": "v1.3.0",
+            "version": "v1.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/linchpin/coding-standards.git",
-                "reference": "8e2c19afb3a95be53acffe1855eed0b93adbe8f3"
+                "reference": "2a5c2580c10b3ca304aa1a1882c6400c80198a0f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/linchpin/coding-standards/zipball/8e2c19afb3a95be53acffe1855eed0b93adbe8f3",
-                "reference": "8e2c19afb3a95be53acffe1855eed0b93adbe8f3",
+                "url": "https://api.github.com/repos/linchpin/coding-standards/zipball/2a5c2580c10b3ca304aa1a1882c6400c80198a0f",
+                "reference": "2a5c2580c10b3ca304aa1a1882c6400c80198a0f",
                 "shasum": ""
             },
             "require": {
@@ -402,9 +402,9 @@
             "description": "Linchpin Coding Standards",
             "support": {
                 "issues": "https://github.com/linchpin/coding-standards/issues",
-                "source": "https://github.com/linchpin/coding-standards/tree/v1.3.0"
+                "source": "https://github.com/linchpin/coding-standards/tree/v1.3.1"
             },
-            "time": "2026-09-12T15:44:27+00:00"
+            "time": "2026-09-15T16:06:42+00:00"
         },
         {
             "name": "php-collective/code-sniffer",
