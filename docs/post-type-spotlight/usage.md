@@ -30,16 +30,23 @@ On an enabled post type's list screen:
 - A **Featured** link appears in the views row at the top, with a count. It
   filters the list to featured items only.
 
-## The Featured Posts block
+## The Featured List block
 
-The plugin registers a **Featured List** variation of the core Query Loop block,
-plus a control that changes how the query treats featured posts:
+The plugin registers a **Featured List** variation of the core Query Loop block.
+Search the inserter for **featured** or **spotlight** to find it.
 
-| Mode | Result |
+Its **Spotlight** panel decides which posts the loop returns:
+
+| Setting | Result |
 | --- | --- |
-| Only featured | Returns featured posts only |
-| Exclude featured | Returns everything except featured posts |
-| Featured first | Returns everything, featured posts sorted to the top |
+| Only featured | Featured posts only |
+| Featured first | Everything, featured posts sorted to the top |
+| Exclude featured | Everything except featured posts |
+
+How many it returns is the Query Loop's own **Items per page** setting, in the
+**Display** panel.
+
+See [The Featured List block](featured-list-block.md) for the full walkthrough.
 
 ## The Featured Posts widget
 
