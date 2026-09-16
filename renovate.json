@@ -14,7 +14,7 @@
 	"ignoreDeps": ["husky"],
 	"labels": ["type: dependencies", "maintenance"],
 	"constraints": {
-		"php": "8.2"
+		"php": "8.5.10"
 	},
 	"packageRules": [
 		{
