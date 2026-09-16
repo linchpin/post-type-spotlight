@@ -29,7 +29,7 @@
     "composer/installers": "^2.2.0"
   },
   "require-dev": {
-    "linchpin/coding-standards": "^1.3.0"
+    "linchpin/coding-standards": "^1.3.1"
   },
   "scripts": {
     "php-lint": "parallel-lint --exclude vendor --exclude node_modules --exclude blocks/node_modules --exclude blocks/build .",
