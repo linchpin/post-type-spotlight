@@ -21,6 +21,7 @@ When a post is designated as featured:
 *   It receives 'featured' and `featured-{$posttype}` classes via the post_class filter.
 *   Shows featured posts as such in the post type's admin screen
 *   Assigns a post a hidden taxonomy term (featured) that can easily be queried.
+*   Can be listed with the Featured List block, a variation of the core Query Loop block.
 
 *Note: For the plugin to work on attachments, you must be using 3.5 or above. All other features will work on 3.1.0 and up.*
 
@@ -61,6 +62,20 @@ This snippet of code will fetch the 10 most recent posts that are featured.
 
 	endwhile; endif;
 ?>``
+
+= How do I show featured posts with blocks? =
+
+Add the **Featured List** block. Search the inserter for "featured" or "spotlight" — it carries the Post Type Spotlight mark.
+
+It is a variation of the core Query Loop block with one extra setting. Its **Spotlight** panel has a **Show** control offering:
+
+*   **Only featured** — only the posts marked as featured.
+*   **Featured first** — every post, with the featured ones moved to the top. This is what sticky posts do, except it works on any post type you have enabled.
+*   **Exclude featured** — every post except the featured ones.
+
+To choose how many posts it shows, use the Query Loop's own **Items per page** setting in the **Display** panel.
+
+Putting a **Featured first** or **Only featured** loop above an **Exclude featured** loop gives you a highlights section with the rest of the posts underneath and nothing repeated.
 
 == Screenshots ==
 

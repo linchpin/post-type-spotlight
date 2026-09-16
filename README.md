@@ -75,7 +75,11 @@ Swap `'operator' => 'NOT IN'` into that clause to exclude featured posts instead
 
 ### The Featured List block
 
-A **Featured List** variation of the core Query Loop block ships with the plugin, plus a control for how the query treats featured posts — only featured, exclude featured, or featured first.
+A **Featured List** variation of the core Query Loop block ships with the plugin. Search the inserter for **featured** or **spotlight** to find it.
+
+Its **Spotlight** panel sets which posts the loop returns — **Only featured**, **Featured first** (everything, featured posts sorted to the top), or **Exclude featured**. How many it returns is the Query Loop's own **Items per page** setting.
+
+Full walkthrough: [The Featured List block](docs/post-type-spotlight/featured-list-block.md).
 
 ## Getting set up locally
 

@@ -23,5 +23,6 @@ is an indexed taxonomy lookup rather than a meta query.
 
 - [Installation](installation.md)
 - [Usage](usage.md)
+- [The Featured List block](featured-list-block.md)
 - [Querying featured posts](querying.md)
 - [Development](development.md)
