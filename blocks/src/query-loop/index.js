@@ -1,7 +1,7 @@
 import { __ } from '@wordpress/i18n';
 import { registerBlockVariation } from '@wordpress/blocks';
 
-import LogoMark from '../components/logo-mark';
+import LogoMarkOutline from '../components/logo-mark-outline';
 import { DEFAULT_QUERY_TYPE, VARIATION_NAME } from './constants';
 
 import './controls'; // Load our controls
@@ -31,7 +31,7 @@ registerBlockVariation( 'core/query', {
 		__( 'posts', 'post-type-spotlight' ),
 	],
 	isActive: ( { namespace } ) => namespace === VARIATION_NAME,
-	icon: LogoMark,
+	icon: LogoMarkOutline,
 	attributes: {
 		namespace: VARIATION_NAME,
 		query: {
