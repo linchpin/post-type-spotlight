@@ -1,0 +1,93 @@
+name: Release blog post
+
+# Reports a release to builditbelieveit.com, which writes a draft post - an
+# overview plus the changelog - for a human to review and publish. Nothing is
+# generated here; the action rings the bell and reports where the draft landed.
+#
+# Two ways in:
+#   * automatically, when release-please publishes (or someone edits) a release.
+#     This only fires because release-please runs under GH_BOT_TOKEN; a release
+#     created by GITHUB_TOKEN raises no release event.
+#   * by hand, for a release that never got a post - pick the tag under
+#     "Run workflow". 3.1.0 shipped before this workflow existed, for example.
+#
+# The endpoint keys on repository plus tag, so re-running is safe: it updates
+# the draft it wrote earlier and leaves a published or hand-edited post alone
+# unless `force` is set.
+#
+# Until WP_USER, WP_PASS, CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET exist
+# on this repo (or are shared to it at org level) the action warns, reports
+# skipped / not_configured and exits 0. Adding the secrets is the switch.
+
+on:
+  release:
+    types: [published, edited]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to write the post for, e.g. v3.1.0"
+        required: true
+        type: string
+      force:
+        description: "Rewrite the post even if it is published or was edited by hand"
+        required: false
+        type: boolean
+        default: false
+      dry-run:
+        description: "Print the payload and post nothing"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# Never two at once for the same release: `edited` can arrive while the run for
+# `published` is still going, and both would write the same post.
+concurrency:
+  group: release-post-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  release-post:
+    name: Draft the release post
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # One path for both triggers. The release event carries tag, notes and
+      # URL itself, but a manual run only has the tag, so the release is read
+      # back from the API either way and the action is always given explicit
+      # values. The body is multi-line markdown, hence the heredoc output.
+      - name: Read the release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          set -euo pipefail
+
+          release="$(gh release view "$TAG" --json tagName,body,url,isPrerelease)"
+
+          {
+            echo "tag=$(jq -r '.tagName' <<<"$release")"
+            echo "url=$(jq -r '.url' <<<"$release")"
+            echo "prerelease=$(jq -r '.isPrerelease' <<<"$release")"
+            echo "notes<<RELEASE_NOTES_EOF"
+            jq -r '.body' <<<"$release"
+            echo "RELEASE_NOTES_EOF"
+          } >>"$GITHUB_OUTPUT"
+
+      - uses: linchpin/release-post@v1
+        with:
+          product: Post Type Spotlight
+          tag: ${{ steps.release.outputs.tag }}
+          release-notes: ${{ steps.release.outputs.notes }}
+          release-url: ${{ steps.release.outputs.url }}
+          prerelease: ${{ steps.release.outputs.prerelease }}
+          force: ${{ inputs.force || false }}
+          dry-run: ${{ inputs.dry-run || false }}
+          wp-user: ${{ secrets.WP_USER }}
+          wp-app-password: ${{ secrets.WP_PASS }}
+          cf-access-client-id: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          cf-access-client-secret: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
