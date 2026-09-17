@@ -1,5 +1,13 @@
 # Changelog #
 
+## [3.1.1](https://github.com/linchpin/post-type-spotlight/compare/v3.1.0...v3.1.1) (2026-09-17)
+
+
+### Bug Fixes 🐛
+
+* **NO-TASK:** Add the Live Preview blueprint for the WordPress org listing ([a4d6de1](https://github.com/linchpin/post-type-spotlight/commit/a4d6de12b4938a20a30f8f1203439874673946a7))
+* **NO-TASK:** Add the Live Preview blueprint for the WordPress org listing ([c29c566](https://github.com/linchpin/post-type-spotlight/commit/c29c566358a4e1fea36c0f46404c3a4b6d1b4aff))
+
 ## [3.1.0](https://github.com/linchpin/post-type-spotlight/compare/v3.0.3...v3.1.0) (2026-09-16)
 
 
