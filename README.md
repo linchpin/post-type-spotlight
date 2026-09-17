@@ -6,7 +6,7 @@ Feature any post type — posts, pages, attachments, or your own — and then qu
 
 <!-- x-release-please-start-version -->
 
-## Latest Release: 3.1.0
+## Latest Release: 3.1.1
 
 <!-- x-release-please-end -->
 
