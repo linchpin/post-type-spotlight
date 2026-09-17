@@ -80,6 +80,8 @@ jobs:
 
       - uses: linchpin/release-post@v1
         with:
+          site-url: https://builditbelieveit.com
+          endpoint: /wp-json/linchpin/v1/release-post
           product: Post Type Spotlight
           tag: ${{ steps.release.outputs.tag }}
           release-notes: ${{ steps.release.outputs.notes }}
