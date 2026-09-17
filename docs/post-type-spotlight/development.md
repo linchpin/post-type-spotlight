@@ -51,6 +51,17 @@ Specs live in `tests/playground/specs`. The fixture mounts the repository into
 Playground and applies `blueprint.json`, which enables the `post` and `page`
 post types and seeds four posts with two of them featured.
 
+A second blueprint, `.wordpress-org/blueprints/blueprint.json`, drives the
+**Live Preview** button on the WordPress.org listing. It installs the released
+plugin from the directory instead of mounting the repository, then seeds the
+same demo content. The deploy and asset workflows copy `.wordpress-org/` to
+the SVN `assets/` tree, which is the only place the directory looks for it.
+To try it locally:
+
+```bash
+node_modules/.bin/wp-playground-cli run-blueprint --blueprint=.wordpress-org/blueprints/blueprint.json
+```
+
 Each spec writes screenshots to `test-results/screenshots/wp-<version>/`. In
 CI those are uploaded as artifacts and posted back to the pull request, so a
 visual regression in the admin shows up in review.

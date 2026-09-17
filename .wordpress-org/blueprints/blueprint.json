@@ -1,0 +1,39 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"landingPage": "/wp-admin/edit.php",
+	"preferredVersions": {
+		"php": "8.2",
+		"wp": "latest"
+	},
+	"phpExtensionBundles": [ "kitchen-sink" ],
+	"features": {
+		"networking": true
+	},
+	"steps": [
+		{
+			"step": "login",
+			"username": "admin",
+			"password": "password"
+		},
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "wordpress.org/plugins",
+				"slug": "post-type-spotlight"
+			},
+			"options": {
+				"activate": true
+			}
+		},
+		{
+			"step": "setSiteOptions",
+			"options": {
+				"pts_featured_post_types_settings": [ "post", "page" ]
+			}
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require '/wordpress/wp-load.php'; update_user_meta( 1, 'wp_persisted_preferences', array( 'core/edit-post' => array( 'welcomeGuide' => false, 'fullscreenMode' => false ), 'core/editor' => array( 'welcomeGuide' => false ), 'core' => array( 'welcomeGuide' => false ) ) ); if ( ! term_exists( 'featured', 'pts_feature_tax' ) ) { wp_insert_term( 'featured', 'pts_feature_tax', array( 'slug' => 'featured' ) ); } $titles = array( 'Featured announcement', 'A second featured story', 'An ordinary post', 'Another ordinary post' ); $ids = array(); foreach ( $titles as $i => $title ) { $ids[ $i ] = wp_insert_post( array( 'post_title' => $title, 'post_content' => 'Demo content for the Post Type Spotlight live preview.', 'post_status' => 'publish', 'post_type' => 'post' ) ); } wp_set_object_terms( $ids[0], 'featured', 'pts_feature_tax', false ); wp_set_object_terms( $ids[1], 'featured', 'pts_feature_tax', false );"
+		}
+	]
+}
