@@ -2,12 +2,17 @@
 #
 # scripts/build.sh and 10up/action-wordpress-plugin-deploy both feed this
 # straight to rsync, so this file is the only exclusion list - there is no
-# .gitattributes export-ignore to keep in sync.
+# .gitattributes export-ignore to keep in sync. The GitHub release zip and
+# the WordPress.org trunk are built from the same list, so they always ship
+# the same files.
 #
 # Leading slashes matter. rsync matches an unanchored pattern at EVERY depth,
 # so a bare `build` also excludes `blocks/build`, which the plugin loads at
 # runtime - that shipped a plugin whose editor panel never rendered. Anchor
 # anything whose name repeats deeper in the tree.
+#
+# What the plugin loads at runtime, and therefore must never be listed here:
+#   post-type-spotlight.php, class-*.php, js/, blocks/build/, readme.txt, LICENSE
 
 # VCS and CI
 /.git
@@ -22,7 +27,6 @@
 
 # Build tooling and manifests
 /blocks/src
-/build
 /composer.json
 /composer.lock
 /node_modules
@@ -31,12 +35,19 @@
 /scripts
 /commitlint.config.js
 
+# scripts/build.sh writes the package to build/post-type-spotlight and then
+# rsyncs ./ into it. Without this line rsync copies the output directory into
+# itself and the zip gains an empty build/ tree.
+/build
+
 # Composer only supplies composer/installers here, which is an install-time
 # plugin. No PHP in this plugin loads vendor/autoload.php, so nothing in
 # vendor/ is needed at runtime.
 /vendor
 
-# Tests and their output
+# Tests and their output. blueprint.json is only read by the Playwright
+# Playground fixtures; WordPress.org Live Preview reads
+# assets/blueprints/blueprint.json from the SVN assets directory, not trunk.
 /tests
 /test-results
 /blueprint.json
@@ -56,11 +67,15 @@
 /wordpress-version-checker.json
 /.linchpin.json
 
-# Docs and repo assets that are not part of the plugin
+# WordPress.org listing assets (banners, icons, screenshots). Both 10up
+# actions copy this directory to the SVN /assets tree themselves; listing it
+# here keeps the same 1.3 MB of images out of trunk and the release zip.
 /.wordpress-org
+
+# Repo-only docs. README.md and CHANGELOG.md deliberately ship: they are
+# small and give the GitHub zip a readable history. readme.txt is what
+# WordPress.org parses, so shipping README.md alongside it changes nothing.
 /docs
-/CHANGELOG.md
-/README.md
 /FAQ.md
 
 # Local noise
