@@ -118,7 +118,7 @@ npm run test:playground:headed  # watch it run
 npm run test:playground:ui      # Playwright UI mode
 ```
 
-Specs live in `tests/playground/specs`. `blueprint.json` seeds the Playground instance.
+Specs live in `tests/playground/specs`. `blueprint.json` seeds the Playground instance. A second blueprint at `.wordpress-org/blueprints/blueprint.json` powers the Live Preview button on WordPress.org and installs the released plugin from the directory instead.
 
 ## Build process and releases
 
