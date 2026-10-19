@@ -253,6 +253,7 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 					'posts_per_page' => 100,
 					'offset'         => 0,
 					'post_status'    => 'any',
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- The one-time 2.0 migration off the legacy meta key, skipped once pts_version is set.
 					'meta_query'     => array(
 						array(
 							'key'     => '_pts_featured_post',
@@ -571,11 +572,11 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 		 */
 		public function sanitize_settings( $input ) {
 			// Nonce is verified by options.php before it dispatches to this sanitize callback.
-			// phpcs:disable Linchpin.Security.NonceVerification.Missing
+			// phpcs:disable WordPress.Security.NonceVerification.Missing, Linchpin.Security.NonceVerification.Missing
 			$submitted = isset( $_POST['pts_featured_post_types'] )
 				? array_map( 'sanitize_text_field', (array) wp_unslash( $_POST['pts_featured_post_types'] ) )
 				: array();
-			// phpcs:enable Linchpin.Security.NonceVerification.Missing
+			// phpcs:enable WordPress.Security.NonceVerification.Missing, Linchpin.Security.NonceVerification.Missing
 
 			$new_input = array();
 
@@ -870,7 +871,7 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 		 * @return void
 		 */
 		private function save_additional_feature_types( $post_id ) {
-			// phpcs:disable Linchpin.Security.NonceVerification.Missing
+			// phpcs:disable WordPress.Security.NonceVerification.Missing, Linchpin.Security.NonceVerification.Missing
 			if ( empty( $_POST['_pts_feature_types_submitted'] ) ) {
 				return;
 			}
@@ -878,7 +879,7 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			$submitted = isset( $_POST['_pts_feature_types'] )
 				? array_map( 'sanitize_title', (array) wp_unslash( $_POST['_pts_feature_types'] ) )
 				: array();
-			// phpcs:enable Linchpin.Security.NonceVerification.Missing
+			// phpcs:enable WordPress.Security.NonceVerification.Missing, Linchpin.Security.NonceVerification.Missing
 
 			foreach ( $this->get_additional_feature_types() as $feature_type ) {
 				$this->set_post_feature_type( $post_id, $feature_type->slug, in_array( $feature_type->slug, $submitted, true ) );
@@ -939,7 +940,7 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			$post_type = $screen && $screen->post_type ? $screen->post_type : get_post_type();
 
 			// Read-only check on an admin list table filter, to mark the current view. No state changes.
-			// phpcs:disable Linchpin.Security.NonceVerification.Recommended
+			// phpcs:disable WordPress.Security.NonceVerification.Recommended, Linchpin.Security.NonceVerification.Recommended
 			$current = '';
 
 			if ( isset( $_GET['taxonomy'], $_GET['term'] ) && 'pts_feature_tax' === $_GET['taxonomy'] ) {
@@ -947,7 +948,7 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			} elseif ( isset( $_GET['pts_feature_tax'] ) ) {
 				$current = sanitize_title( wp_unslash( $_GET['pts_feature_tax'] ) );
 			}
-			// phpcs:enable Linchpin.Security.NonceVerification.Recommended
+			// phpcs:enable WordPress.Security.NonceVerification.Recommended, Linchpin.Security.NonceVerification.Recommended
 
 			foreach ( post_type_spotlight_get_feature_types() as $feature_type ) {
 				$count = new WP_Query(
@@ -955,6 +956,7 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 						'post_type'      => $post_type,
 						'posts_per_page' => 1,
 						'fields'         => 'ids',
+						// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Featured state is stored as a term so that it can be queried this way.
 						'tax_query'      => array(
 							array(
 								'taxonomy' => 'pts_feature_tax',
