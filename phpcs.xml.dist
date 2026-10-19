@@ -18,6 +18,7 @@
 
 	<!-- Only scan the plugin's own PHP sources. -->
 	<file>./post-type-spotlight.php</file>
+	<file>./template-tags.php</file>
 	<file>./class-post-type-spotlight.php</file>
 	<file>./class-post-type-spotlight-block-editor.php</file>
 	<file>./class-pts-featured-posts-widget.php</file>

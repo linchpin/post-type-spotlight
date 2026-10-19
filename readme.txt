@@ -63,6 +63,16 @@ This snippet of code will fetch the 10 most recent posts that are featured.
 	endwhile; endif;
 ?>``
 
+= How do I check whether a single post is featured? =
+
+Call `post_type_spotlight_is_featured()`. It takes a post ID or post object, and inside the loop it checks the current post when given neither.
+
+``<?php
+	if ( function_exists( 'post_type_spotlight_is_featured' ) && post_type_spotlight_is_featured() ) {
+		// The current post is featured.
+	}
+?>``
+
 = How do I show featured posts with blocks? =
 
 Add the **Featured List** block. Search the inserter for "featured" or "spotlight" — it carries the Post Type Spotlight mark.

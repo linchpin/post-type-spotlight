@@ -624,7 +624,7 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 					echo esc_html( apply_filters( 'pts_featured_checkbox_text', 'Feature this ' . $pt->labels->singular_name . ':', $post ) );
 					?></span>&nbsp
-					<input type="checkbox" name="_pts_featured_post" id="_pts_featured_post" <?php checked( has_term( 'featured', 'pts_feature_tax', $post->ID ) ); ?> />
+					<input type="checkbox" name="_pts_featured_post" id="_pts_featured_post" <?php checked( post_type_spotlight_is_featured( $post ) ); ?> />
 			</div>
 			<?php
 		}
@@ -659,7 +659,7 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 		public function manage_posts_custom_column( $column, $post_id ) {
 			switch ( $column ) {
 				case 'lp-featured':
-					$featured = has_term( 'featured', 'pts_feature_tax', $post_id );
+					$featured = post_type_spotlight_is_featured( $post_id );
 
 					if ( $featured ) {
 						echo '<span class="dashicons dashicons-star-filled"></span>';
@@ -919,7 +919,7 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 		 * @return void
 		 */
 		public function post_class( $classes, $class, $post_id ) {
-			if ( has_term( 'featured', 'pts_feature_tax', $post_id ) ) {
+			if ( post_type_spotlight_is_featured( $post_id ) ) {
 				$classes[] = 'featured';
 				$classes[] = 'featured-' . get_post_type( $post_id );
 			}

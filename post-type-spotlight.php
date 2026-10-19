@@ -53,6 +53,7 @@ if ( ! defined( 'POST_TYPE_SPOTLIGHT_PLUGIN_NAME' ) ) {
 	define( 'POST_TYPE_SPOTLIGHT_PLUGIN_NAME', esc_html__( 'Post Type Spotlight', 'post-type-spotlight' ) );
 }
 
+require_once 'template-tags.php';
 require_once 'class-post-type-spotlight.php';
 require_once 'class-post-type-spotlight-block-editor.php';
 
