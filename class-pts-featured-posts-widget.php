@@ -68,7 +68,13 @@ class PTS_Featured_Posts_Widget extends WP_Widget {
 			echo wp_kses_post( $args['before_title'] . $title . $args['after_title'] );
 		}
 
-		$args = array(
+		/*
+		 * Not `$args`: that still holds the sidebar's arguments, and
+		 * `after_widget` is read from it once the loop has printed. Reusing the
+		 * name left the wrapper unclosed and raised an undefined key warning on
+		 * every render.
+		 */
+		$query_args = array(
 			'posts_per_page' => (int) $widget_settings['number'],
 			'post_type'      => $widget_settings['post_type'],
 			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Featured state is stored as a term so that it can be queried this way.
@@ -81,7 +87,7 @@ class PTS_Featured_Posts_Widget extends WP_Widget {
 			),
 		);
 
-		$featured_posts = new WP_Query( $args );
+		$featured_posts = new WP_Query( $query_args );
 
 		if ( $featured_posts->have_posts() ) : ?>
 			<div class="pts-widget-post-container">
