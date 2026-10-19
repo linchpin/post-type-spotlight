@@ -291,6 +291,15 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			?>
 			<p id="<?php echo esc_attr( self::SETTINGS_ANCHOR ); ?>" style="scroll-margin-top: 64px;">
 				<?php esc_html_e( 'Select which post types can be featured.', 'post-type-spotlight' ); ?>
+				<?php if ( current_user_can( 'manage_options' ) ) : ?>
+					<?php
+					printf(
+						/* translators: %s: URL of the Post Type Spotlight admin screen. */
+						wp_kses( __( 'Add more kinds of featured, such as Recommended, under <a href="%s">Post Type Spotlight</a>.', 'post-type-spotlight' ), array( 'a' => array( 'href' => array() ) ) ),
+						esc_url( Post_Type_Spotlight_Admin_Page::url() )
+					);
+					?>
+				<?php endif; ?>
 			</p>
 			<?php
 		}

@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - 'blocks/src/**'
+      - 'admin/src/**'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/js.yml'
@@ -41,12 +42,13 @@ jobs:
         run: npm run lint:css
 
       - name: Verify the build produces the assets the plugin loads
-        # blocks/build is committed, but a broken source tree would ship the
-        # stale copy rather than fail. Build and check PHP's entry points.
+        # blocks/build and admin/build are committed, but a broken source tree
+        # would ship the stale copy rather than fail. Build and check PHP's
+        # entry points.
         run: |
           set -e
           npm run build
-          for asset in blocks/build/index.js blocks/build/index.asset.php; do
+          for asset in blocks/build/index.js blocks/build/index.asset.php admin/build/admin.js admin/build/admin.asset.php admin/build/admin.css; do
             if [ ! -s "$asset" ]; then
               echo "::error::Missing or empty build asset: $asset"
               exit 1

@@ -51,8 +51,8 @@ See [The Featured List block](featured-list-block.md) for the full walkthrough.
 ## More than one kind of featured
 
 A site can add [feature types](feature-types.md) beside Featured, such as
-Recommended or Hand Picked. Until it does, every screen above works exactly as
-described.
+Recommended or Hand Picked, under **Settings → Post Type Spotlight**. Until it
+does, every screen above works exactly as described.
 
 ## The Featured Posts widget
 

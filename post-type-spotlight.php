@@ -56,6 +56,11 @@ if ( ! defined( 'POST_TYPE_SPOTLIGHT_PLUGIN_NAME' ) ) {
 require_once 'template-tags.php';
 require_once 'class-post-type-spotlight.php';
 require_once 'class-post-type-spotlight-block-editor.php';
+require_once 'class-post-type-spotlight-rest-base.php';
+require_once 'class-post-type-spotlight-rest-feature-types.php';
+require_once 'class-post-type-spotlight-admin-page.php';
 
 new Post_Type_Spotlight();
 new Post_Type_Spotlight_Block_Editor();
+new Post_Type_Spotlight_REST_Feature_Types();
+new Post_Type_Spotlight_Admin_Page();

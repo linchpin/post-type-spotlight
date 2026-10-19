@@ -22,24 +22,42 @@ moment one exists:
 - the Featured List block and the Featured Posts widget gain a **Feature type**
   setting.
 
-## Adding a feature type
+## Managing feature types
 
-A feature type is a term in `pts_feature_tax`. Create one with WP-CLI:
+Go to **Settings → Post Type Spotlight** (under **Linchpin** when Mantle is
+active). The **Feature types** section lists every type with its slug and how
+many published posts carry it.
+
+- **Add a feature type** takes a name, an optional slug and an optional
+  description. Leave the slug blank to make one from the name.
+- **Edit**, from a row's actions, renames a type or changes its description.
+- **Delete** takes the type off every post that carries it, after a
+  confirmation that says how many that is.
+
+Two rules the screen enforces:
+
+- **Featured is built in.** It cannot be edited or deleted; every part of the
+  plugin assumes it exists.
+- **A slug is fixed once the type exists.** Featured List blocks, the widget
+  and theme code all name a type by its slug, so changing it would quietly
+  empty every list that reads it. To change one, add a new type and delete the
+  old.
+
+The screen needs at least one post type enabled under **Settings → Writing**,
+because the taxonomy is only registered once one is. Until then it says so and
+links there.
+
+### Without the screen
+
+A feature type is a term in `pts_feature_tax`, so WP-CLI and code work too:
 
 ```bash
 wp term create pts_feature_tax "Recommended"
 ```
 
-or from code:
-
 ```php
 wp_insert_term( 'Recommended', 'pts_feature_tax' );
 ```
-
-The term's name is what editors see; its slug is what code queries by.
-
-The taxonomy is only registered once at least one post type has been enabled
-under **Settings → Writing**, so enable one first.
 
 ## Marking a post
 
