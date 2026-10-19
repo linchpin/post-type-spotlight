@@ -4,7 +4,7 @@
 #
 # Used locally and by plugin-check.yml, which defaults `build_command` to this
 # script and then points Plugin Check at `build_dir`. Assumes `npm run build`
-# has already produced blocks/build.
+# has already produced blocks/build and admin/build.
 
 set -euo pipefail
 

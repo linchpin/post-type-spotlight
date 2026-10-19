@@ -12,7 +12,8 @@
 # anything whose name repeats deeper in the tree.
 #
 # What the plugin loads at runtime, and therefore must never be listed here:
-#   post-type-spotlight.php, class-*.php, js/, blocks/build/, readme.txt, LICENSE
+#   post-type-spotlight.php, template-tags.php, class-*.php, js/, blocks/build/,
+#   admin/build/, readme.txt, LICENSE
 
 # VCS and CI
 /.git
@@ -27,6 +28,8 @@
 
 # Build tooling and manifests
 /blocks/src
+/admin/src
+/admin/webpack.config.js
 /composer.json
 /composer.lock
 /node_modules

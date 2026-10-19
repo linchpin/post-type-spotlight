@@ -59,7 +59,7 @@ jobs:
       - name: Verify the build produced the assets the plugin loads
         run: |
           set -e
-          for asset in blocks/build/index.js blocks/build/index.asset.php; do
+          for asset in blocks/build/index.js blocks/build/index.asset.php admin/build/admin.js admin/build/admin.asset.php admin/build/admin.css; do
             if [ ! -s "$asset" ]; then
               echo "::error::Missing or empty build asset: $asset"
               exit 1

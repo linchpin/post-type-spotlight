@@ -1,0 +1,78 @@
+/**
+ * What is left of the admin screen once @linchpinagency/ui owns the chrome.
+ *
+ * The brand bar, the page panel, the two-column body, the help column, the
+ * cards, the snackbars and the footer are all the library's, and
+ * `--lp-brand-*` comes from the `defineBrand()` call in ../brand.js. What
+ * remains is the plugin's own furniture: the loading row, the forms, the
+ * Built in badge and the table's spacing. Every colour is a `--wpds-*` design
+ * system token, so the brand seed flows through these too.
+ *
+ * The library's stylesheet is imported first, from ../index.js, and both land
+ * in admin/build/admin.css behind `wp-components`.
+ */
+
+/*
+ * DataViews ships its own stylesheet, and the table is a stack of bare rows
+ * without it. It has to come in here rather than from JavaScript: WordPress
+ * registers no `wp-dataviews` style handle, and the dependency extraction
+ * plugin turns a JS import of anything under `@wordpress/` into an external
+ * handle - for a stylesheet, a dependency that does not exist. Sass resolves
+ * it through node_modules and inlines it instead. Same approach as psst.
+ */
+@use "@wordpress/dataviews/build-style/style.css";
+
+.post-type-spotlight-admin {
+
+	&__loading {
+		display: flex;
+		align-items: center;
+		gap: var(--wpds-dimension-gap-sm);
+		padding: 24px 0;
+		color: var(--wpds-color-foreground-content-neutral-weak);
+	}
+
+	&__form {
+		display: flex;
+		flex-direction: column;
+		gap: var(--wpds-dimension-gap-md);
+		max-width: 480px;
+	}
+
+	&__modal-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: var(--wpds-dimension-gap-sm);
+	}
+
+	&__type {
+		display: flex;
+		flex-direction: column;
+		gap: var(--wpds-dimension-gap-xs);
+	}
+
+	&__type-description {
+		color: var(--wpds-color-foreground-content-neutral-weak);
+		white-space: normal;
+	}
+
+	&__type-name {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--wpds-dimension-gap-sm);
+		font-weight: var(--wpds-typography-font-weight-emphasis);
+	}
+
+	&__badge {
+		display: inline-block;
+		padding: 2px 8px;
+		border-radius: 999px;
+		background: var(--wpds-color-background-surface-neutral-weak);
+		color: var(--wpds-color-foreground-content-neutral-weak);
+		font-size: var(--wpds-typography-font-size-xs);
+		font-weight: var(--wpds-typography-font-weight-emphasis);
+		line-height: 1.6;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+}

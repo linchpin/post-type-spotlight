@@ -9,6 +9,7 @@ on:
     paths:
       - '**.php'
       - 'blocks/src/**'
+      - 'admin/src/**'
       - 'readme.txt'
       - 'composer.json'
       - 'composer.lock'

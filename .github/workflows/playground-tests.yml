@@ -10,6 +10,7 @@ on:
     paths:
       - '**.php'
       - 'blocks/src/**'
+      - 'admin/src/**'
       - 'blueprint.json'
       - 'tests/playground/**'
       - 'composer.json'

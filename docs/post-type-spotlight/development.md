@@ -10,8 +10,8 @@ npm install
 npm run build
 ```
 
-`npm run build` compiles `blocks/src` to `blocks/build`, which is committed
-because the plugin loads it at runtime.
+`npm run build` compiles `blocks/src` to `blocks/build` and `admin/src` to
+`admin/build`. Both are committed because the plugin loads them at runtime.
 
 ## Scripts
 
@@ -20,8 +20,9 @@ because the plugin loads it at runtime.
 | `composer lint` | Parse lint plus PHPCS against the Linchpin standard |
 | `composer phpcbf` | Auto-fix what PHPCS can |
 | `composer build` | Produce the distributable at `build/post-type-spotlight` |
-| `npm run build` | Compile the block editor assets |
-| `npm run start` | Compile and watch |
+| `npm run build` | Compile the block editor assets and the admin screen |
+| `npm run start` | Compile and watch the block editor assets |
+| `npm run start:admin` | Compile and watch the admin screen |
 | `npm run lint:js` / `npm run lint:css` | Lint the block sources |
 | `npm run test:playground` | Run the WordPress Playground suite |
 
