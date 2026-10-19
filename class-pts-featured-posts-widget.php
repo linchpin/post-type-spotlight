@@ -70,6 +70,7 @@ class PTS_Featured_Posts_Widget extends WP_Widget {
 		$args = array(
 			'posts_per_page' => (int) $widget_settings['number'],
 			'post_type'      => $widget_settings['post_type'],
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Featured state is stored as a term so that it can be queried this way.
 			'tax_query'      => array(
 				array(
 					'taxonomy' => 'pts_feature_tax',
