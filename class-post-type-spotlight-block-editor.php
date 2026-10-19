@@ -133,6 +133,7 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 			 * clause onto whichever group happened to be last. Wrapping leaves
 			 * whatever core built intact and ANDs this on top of it.
 			 */
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Featured state is stored as a term so that it can be queried this way.
 			$args['tax_query'] = empty( $existing )
 				? [ $clause ]
 				: [

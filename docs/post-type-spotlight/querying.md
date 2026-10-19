@@ -47,8 +47,22 @@ Set the `operator` to `NOT IN`:
 ## Checking a single post
 
 ```php
-if ( has_term( 'featured', 'pts_feature_tax', $post_id ) ) {
+if ( post_type_spotlight_is_featured( $post_id ) ) {
 	// This post is featured.
+}
+```
+
+It takes a post ID or a `WP_Post`, and inside the loop it reads the current
+post when given neither, the same way `is_sticky()` does. It is a wrapper for
+`has_term( 'featured', 'pts_feature_tax', $post )`, so it returns `false` for a
+missing post and on a site where no post type has been enabled yet.
+
+Guard the call in a theme, so deactivating the plugin does not take the theme
+down with it:
+
+```php
+if ( function_exists( 'post_type_spotlight_is_featured' ) && post_type_spotlight_is_featured() ) {
+	// The current post is featured.
 }
 ```
 

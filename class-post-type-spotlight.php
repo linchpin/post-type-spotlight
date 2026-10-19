@@ -253,6 +253,7 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 					'posts_per_page' => 100,
 					'offset'         => 0,
 					'post_status'    => 'any',
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- The one-time 2.0 migration off the legacy meta key, skipped once pts_version is set.
 					'meta_query'     => array(
 						array(
 							'key'     => '_pts_featured_post',
@@ -562,11 +563,11 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 		 */
 		public function sanitize_settings( $input ) {
 			// Nonce is verified by options.php before it dispatches to this sanitize callback.
-			// phpcs:disable Linchpin.Security.NonceVerification.Missing
+			// phpcs:disable WordPress.Security.NonceVerification.Missing, Linchpin.Security.NonceVerification.Missing
 			$submitted = isset( $_POST['pts_featured_post_types'] )
 				? array_map( 'sanitize_text_field', (array) wp_unslash( $_POST['pts_featured_post_types'] ) )
 				: array();
-			// phpcs:enable Linchpin.Security.NonceVerification.Missing
+			// phpcs:enable WordPress.Security.NonceVerification.Missing, Linchpin.Security.NonceVerification.Missing
 
 			$new_input = array();
 
@@ -624,7 +625,7 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 					// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 					echo esc_html( apply_filters( 'pts_featured_checkbox_text', 'Feature this ' . $pt->labels->singular_name . ':', $post ) );
 					?></span>&nbsp
-					<input type="checkbox" name="_pts_featured_post" id="_pts_featured_post" <?php checked( has_term( 'featured', 'pts_feature_tax', $post->ID ) ); ?> />
+					<input type="checkbox" name="_pts_featured_post" id="_pts_featured_post" <?php checked( post_type_spotlight_is_featured( $post ) ); ?> />
 			</div>
 			<?php
 		}
@@ -659,7 +660,7 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 		public function manage_posts_custom_column( $column, $post_id ) {
 			switch ( $column ) {
 				case 'lp-featured':
-					$featured = has_term( 'featured', 'pts_feature_tax', $post_id );
+					$featured = post_type_spotlight_is_featured( $post_id );
 
 					if ( $featured ) {
 						echo '<span class="dashicons dashicons-star-filled"></span>';
@@ -832,6 +833,7 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 				array(
 					'post_type'      => get_post_type(),
 					'posts_per_page' => 1,
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Featured state is stored as a term so that it can be queried this way.
 					'tax_query'      => array(
 						array(
 							'taxonomy' => 'pts_feature_tax',
@@ -868,10 +870,10 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			$link = '<a href="' . esc_url( $url ) . '"';
 
 			// Read-only check on an admin list table filter, to mark the current view. No state changes.
-			// phpcs:disable Linchpin.Security.NonceVerification.Recommended
+			// phpcs:disable WordPress.Security.NonceVerification.Recommended, Linchpin.Security.NonceVerification.Recommended
 			$is_current = ( isset( $_GET['taxonomy'] ) && 'pts_feature_tax' === $_GET['taxonomy'] )
 				|| ( isset( $_GET['pts_feature_tax'] ) && 'featured' === $_GET['pts_feature_tax'] );
-			// phpcs:enable Linchpin.Security.NonceVerification.Recommended
+			// phpcs:enable WordPress.Security.NonceVerification.Recommended, Linchpin.Security.NonceVerification.Recommended
 
 			if ( $is_current ) {
 				$link .= ' class="current"';
@@ -919,7 +921,7 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 		 * @return void
 		 */
 		public function post_class( $classes, $class, $post_id ) {
-			if ( has_term( 'featured', 'pts_feature_tax', $post_id ) ) {
+			if ( post_type_spotlight_is_featured( $post_id ) ) {
 				$classes[] = 'featured';
 				$classes[] = 'featured-' . get_post_type( $post_id );
 			}

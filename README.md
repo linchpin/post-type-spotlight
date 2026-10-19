@@ -71,7 +71,7 @@ $featured = new WP_Query(
 );
 ```
 
-Swap `'operator' => 'NOT IN'` into that clause to exclude featured posts instead. For a single post, `has_term( 'featured', 'pts_feature_tax', $post_id )`.
+Swap `'operator' => 'NOT IN'` into that clause to exclude featured posts instead. For a single post, `post_type_spotlight_is_featured( $post )`, which reads the current post in the loop when given none.
 
 ### The Featured List block
 
