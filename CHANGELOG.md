@@ -1,5 +1,40 @@
 # Changelog #
 
+## [3.2.0](https://github.com/linchpin/post-type-spotlight/compare/v3.1.1...v3.2.0) (2026-10-19)
+
+
+### Features ✨
+
+* **LINCHPIN-3252:** Allow more than one feature type, such as Recommended ([81296ec](https://github.com/linchpin/post-type-spotlight/commit/81296ecf14cc9c15e7d807ac2d2b92aeb4a248f9))
+* **LINCHPIN-3252:** Land feature types and their admin screen on main ([7426498](https://github.com/linchpin/post-type-spotlight/commit/7426498d7ac951052c5ddc8ca99198af40a7db4d))
+* **LINCHPIN-3350:** Add a template tag to check whether a post is featured ([381f49e](https://github.com/linchpin/post-type-spotlight/commit/381f49e7cd7e9b68513deb1f637072591123bc75))
+* **LINCHPIN-3350:** Add a template tag to check whether a post is featured ([0c6b3b2](https://github.com/linchpin/post-type-spotlight/commit/0c6b3b294897caa162c6dd474e33c7efe24f416f))
+* **LINCHPIN-3362:** Add an admin screen for managing feature types ([77d3a4d](https://github.com/linchpin/post-type-spotlight/commit/77d3a4d5c0250a76d49fb2901b74875daa67d5ce))
+* **LINCHPIN-3362:** Add an admin screen for managing feature types ([604a717](https://github.com/linchpin/post-type-spotlight/commit/604a7173d4aea926a75fef0f77690295171aeb53))
+
+
+### Bug Fixes 🐛
+
+* **LINCHPIN-3350:** Account for the Plugin Check warnings at each call site ([4463183](https://github.com/linchpin/post-type-spotlight/commit/446318368f9e08f8a272df1d87c08ddb9255dcf0))
+* **LINCHPIN-5870:** Show the editor Spotlight row to editors and authors ([2fa0818](https://github.com/linchpin/post-type-spotlight/commit/2fa0818c769a22c54c120b7ba6caeb334d5afdf6))
+* **LINCHPIN-5870:** Show the editor Spotlight row to editors and authors ([4babd90](https://github.com/linchpin/post-type-spotlight/commit/4babd90288bfd99aa821f2a9dd96c7f2757082a1))
+* **LINCHPIN-5871:** Close the Featured Posts widget wrapper with after_widget ([a164d36](https://github.com/linchpin/post-type-spotlight/commit/a164d3617d9875ef5cf6e049c19331139487cd86))
+* **LINCHPIN-5871:** Close the Featured Posts widget wrapper with after_widget ([87b8984](https://github.com/linchpin/post-type-spotlight/commit/87b8984ee3638fc7af31a35c906c09731442e1ed))
+
+
+### Tests 🧪
+
+* **LINCHPIN-3252:** Dispose each Playground server so the suite stops leaking workers ([8cad6be](https://github.com/linchpin/post-type-spotlight/commit/8cad6bedf3dcadb51f6a699c740121344fe0cf6a))
+* **LINCHPIN-3362:** Dispose each Playground server so the suite stops leaking workers ([c2be85f](https://github.com/linchpin/post-type-spotlight/commit/c2be85febdc0f91146cd71211642471065c178d2))
+
+
+### Miscellaneous Chores 🧹
+
+* **deps:** update node.js to v24.22.0 ([47a36ce](https://github.com/linchpin/post-type-spotlight/commit/47a36ce3744719326f2d6128595544306736640c))
+* **deps:** update node.js to v24.22.0 ([b01322b](https://github.com/linchpin/post-type-spotlight/commit/b01322b025282e88eb60c6afb2f0d7010aea9592))
+* **deps:** update npm dev dependencies ([4394c7f](https://github.com/linchpin/post-type-spotlight/commit/4394c7f59b16c2bf82485ea1aad6c5e64cf416a3))
+* **deps:** update npm dev dependencies ([8323102](https://github.com/linchpin/post-type-spotlight/commit/832310294c37e10d969ec9dcb9a5d17f0caad750))
+
 ## [3.1.1](https://github.com/linchpin/post-type-spotlight/compare/v3.1.0...v3.1.1) (2026-09-17)
 
 
