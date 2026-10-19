@@ -2,7 +2,11 @@ import { __ } from '@wordpress/i18n';
 import { registerBlockVariation } from '@wordpress/blocks';
 
 import LogoMarkOutline from '../components/logo-mark-outline';
-import { DEFAULT_QUERY_TYPE, VARIATION_NAME } from './constants';
+import {
+	DEFAULT_FEATURE_TYPE,
+	DEFAULT_QUERY_TYPE,
+	VARIATION_NAME,
+} from './constants';
 
 import './controls'; // Load our controls
 
@@ -54,6 +58,7 @@ registerBlockVariation( 'core/query', {
 			 */
 			inherit: false,
 			queryType: DEFAULT_QUERY_TYPE,
+			featureType: DEFAULT_FEATURE_TYPE,
 		},
 	},
 	scope: [ 'inserter' ],

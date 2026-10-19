@@ -47,6 +47,19 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 		 */
 		const FEATURED_FIRST_QUERY_VAR = 'pts_featured_first';
 
+		/**
+		 * Feature type a Featured List reads when its block names none.
+		 *
+		 * Every Featured List saved before feature types existed has no
+		 * `featureType`, and `featured` is what it was listing all along.
+		 *
+		 * Mirrors `DEFAULT_FEATURE_TYPE` in blocks/src/query-loop/constants.js.
+		 *
+		 * @since 3.2.0
+		 * @var string
+		 */
+		const DEFAULT_FEATURE_TYPE = 'featured';
+
 		public function __construct() {
 
 			add_action( 'init', [ $this, 'filter_rest_query' ] );
@@ -92,16 +105,19 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 		 *
 		 * @since 3.2.0
 		 *
-		 * @param array  $args       WP_Query arguments to add to.
-		 * @param string $query_type One of self::QUERY_TYPES. Anything else is ignored.
+		 * @param array  $args         WP_Query arguments to add to.
+		 * @param string $query_type   One of self::QUERY_TYPES. Anything else is ignored.
+		 * @param mixed  $feature_type Slug of the feature type to query. Default `featured`.
 		 *
 		 * @return array The arguments, filtered if the query type was one we handle.
 		 */
-		private function apply_query_type( $args, $query_type ) {
+		private function apply_query_type( $args, $query_type, $feature_type = self::DEFAULT_FEATURE_TYPE ) {
 
 			if ( ! in_array( $query_type, self::QUERY_TYPES, true ) ) {
 				return $args;
 			}
+
+			$feature_type = $this->sanitize_feature_type( $feature_type );
 
 			/*
 			 * "Featured first" reorders the result set rather than narrowing it:
@@ -109,7 +125,7 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 			 * instead flags the query for orderby_featured_first() below.
 			 */
 			if ( 'featured-first' === $query_type ) {
-				$args[ self::FEATURED_FIRST_QUERY_VAR ] = true;
+				$args[ self::FEATURED_FIRST_QUERY_VAR ] = $feature_type;
 
 				return $args;
 			}
@@ -117,7 +133,7 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 			$clause = [
 				'taxonomy'         => 'pts_feature_tax',
 				'field'            => 'slug',
-				'terms'            => [ 'featured' ],
+				'terms'            => [ $feature_type ],
 				'operator'         => 'featured-exclude' === $query_type ? 'NOT IN' : 'IN',
 				'include_children' => false,
 			];
@@ -142,6 +158,29 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 				];
 
 			return $args;
+		}
+
+
+		/**
+		 * Reduce a block's `featureType` to a slug we can query by.
+		 *
+		 * The value comes from saved block markup or an unregistered REST
+		 * parameter, so it may be anything. A slug that names no feature type is
+		 * passed through rather than swapped for `featured`: a list of a type
+		 * that has since been deleted should come up empty, not quietly start
+		 * listing different posts.
+		 *
+		 * @since 3.2.0
+		 *
+		 * @param mixed $feature_type The value the block carried.
+		 *
+		 * @return string A term slug.
+		 */
+		private function sanitize_feature_type( $feature_type ) {
+
+			$feature_type = is_string( $feature_type ) ? sanitize_title( $feature_type ) : '';
+
+			return '' === $feature_type ? self::DEFAULT_FEATURE_TYPE : $feature_type;
 		}
 
 
@@ -215,7 +254,11 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 				return $query;
 			}
 
-			return $this->apply_query_type( $query, $query_type );
+			$feature_type = isset( $block->context['query']['featureType'] )
+				? $block->context['query']['featureType']
+				: self::DEFAULT_FEATURE_TYPE;
+
+			return $this->apply_query_type( $query, $query_type, $feature_type );
 		}
 
 
@@ -244,7 +287,7 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 				return $args;
 			}
 
-			return $this->apply_query_type( $args, sanitize_key( $query_type ) );
+			return $this->apply_query_type( $args, sanitize_key( $query_type ), $request->get_param( 'featureType' ) );
 		}
 
 
@@ -263,11 +306,14 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 		 */
 		public function orderby_featured_first( $orderby, $query ) {
 
-			if ( ! $query->get( self::FEATURED_FIRST_QUERY_VAR ) ) {
+			$feature_type = $query->get( self::FEATURED_FIRST_QUERY_VAR );
+
+			if ( ! $feature_type ) {
 				return $orderby;
 			}
 
-			$term = get_term_by( 'slug', 'featured', 'pts_feature_tax' );
+			// The flag was a plain `true` before feature types, meaning `featured`.
+			$term = get_term_by( 'slug', is_string( $feature_type ) ? $feature_type : self::DEFAULT_FEATURE_TYPE, 'pts_feature_tax' );
 
 			if ( ! $term instanceof WP_Term ) {
 				return $orderby;
@@ -367,6 +413,8 @@ if ( ! class_exists( 'Post_Type_Spotlight_Block_Editor' ) ) {
 			wp_add_inline_style(
 				'post-type-spotlight-block-editor',
 				'.components-panel__row.pts-post-settings-panel{display:block;margin-top:0;min-height:0}'
+				// The feature types popover, sized and padded like core's Status popover.
+				. '.pts-spotlight__types .components-popover__content{min-width:240px;padding:16px}'
 			);
 		}
 

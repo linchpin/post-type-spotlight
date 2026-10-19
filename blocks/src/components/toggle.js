@@ -14,7 +14,7 @@ import PanelRow from './panel-row';
  * @param {Object} props Props Icon passes through, notably `size`.
  * @return {React.ReactElement} The mark in a single colour.
  */
-const MonochromeMark = ( props ) => <LogoMark { ...props } monochrome />;
+export const MonochromeMark = ( props ) => <LogoMark { ...props } monochrome />;
 
 /**
  * The Spotlight row in the editor Summary panel.

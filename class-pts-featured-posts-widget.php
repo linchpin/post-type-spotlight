@@ -38,9 +38,10 @@ class PTS_Featured_Posts_Widget extends WP_Widget {
 		$widget_settings = wp_parse_args(
 			$instance,
 			array(
-				'number'    => 5,
-				'title'     => '',
-				'post_type' => '',
+				'number'       => 5,
+				'title'        => '',
+				'post_type'    => '',
+				'feature_type' => 'featured',
 			)
 		);
 
@@ -74,7 +75,7 @@ class PTS_Featured_Posts_Widget extends WP_Widget {
 				array(
 					'taxonomy' => 'pts_feature_tax',
 					'field'    => 'slug',
-					'terms'    => array( 'featured' ),
+					'terms'    => array( $widget_settings['feature_type'] ),
 				),
 			),
 		);
@@ -115,6 +116,12 @@ class PTS_Featured_Posts_Widget extends WP_Widget {
 			$instance['post_type'] = $new_instance['post_type'];
 		}
 
+		$feature_types = wp_list_pluck( post_type_spotlight_get_feature_types(), 'slug' );
+
+		if ( isset( $new_instance['feature_type'] ) && in_array( $new_instance['feature_type'], $feature_types, true ) ) {
+			$instance['feature_type'] = $new_instance['feature_type'];
+		}
+
 		return $instance;
 	}
 
@@ -128,12 +135,15 @@ class PTS_Featured_Posts_Widget extends WP_Widget {
 	public function form( $instance ) {
 
 		$defaults = array(
-			'number'    => 5,
-			'title'     => '',
-			'post_type' => '',
+			'number'       => 5,
+			'title'        => '',
+			'post_type'    => '',
+			'feature_type' => 'featured',
 		);
 
 		$instance = wp_parse_args( $instance, $defaults );
+
+		$feature_types = post_type_spotlight_get_feature_types();
 
 		if ( empty( $this->featured_post_types ) ) :
 			?>
@@ -175,6 +185,16 @@ class PTS_Featured_Posts_Widget extends WP_Widget {
 					?>
 				</select>
 			</p>
+			<?php if ( count( $feature_types ) > 1 ) : ?>
+				<p>
+					<label for="<?php echo esc_attr( $this->get_field_id( 'feature_type' ) ); ?>"><?php esc_html_e( 'Feature type', 'post-type-spotlight' ); ?>:</label>
+					<select id="<?php echo esc_attr( $this->get_field_id( 'feature_type' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'feature_type' ) ); ?>" class="widefat">
+						<?php foreach ( $feature_types as $feature_type ) : ?>
+							<option value="<?php echo esc_attr( $feature_type->slug ); ?>" <?php selected( $instance['feature_type'], $feature_type->slug ); ?>><?php echo 'featured' === $feature_type->slug ? esc_html__( 'Featured', 'post-type-spotlight' ) : esc_html( $feature_type->name ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</p>
+			<?php endif; ?>
 			<p>
 				<label for="<?php echo esc_attr( $this->get_field_id( 'number' ) ); ?>"><?php esc_html_e( 'Number of Posts', 'post-type-spotlight' ); ?>:</label>
 				<input size="2" id="<?php echo esc_attr( $this->get_field_id( 'number' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'number' ) ); ?>" type="text" value="<?php echo esc_attr( $instance['number'] ); ?>" />

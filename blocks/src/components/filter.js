@@ -2,11 +2,13 @@ import { SelectControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
 import {
+	DEFAULT_FEATURE_TYPE,
 	DEFAULT_QUERY_TYPE,
 	QUERY_TYPE_EXCLUDE_FEATURED,
 	QUERY_TYPE_FEATURED_FIRST,
 	QUERY_TYPE_FEATURED_ONLY,
 } from '../query-loop/constants';
+import useFeatureTypes from '../utils/use-feature-types';
 
 /**
  * Which posts the Featured List variation shows.
@@ -57,32 +59,78 @@ const getQueryTypeOptions = () => [
 const PTSFilter = ( { attributes, setAttributes } ) => {
 	const { query } = attributes;
 	const options = getQueryTypeOptions();
+	const featureTypes = useFeatureTypes();
 
 	// A Featured List saved before `queryType` moved inside `query` has none,
 	// and the default is what it was rendering all along.
 	const queryType = query?.queryType || DEFAULT_QUERY_TYPE;
 
+	// Likewise a Featured List saved before feature types existed.
+	const featureType = query?.featureType || DEFAULT_FEATURE_TYPE;
+
 	const selected = options.find( ( option ) => option.value === queryType );
 
 	return (
-		<SelectControl
-			__nextHasNoMarginBottom
-			label={ __( 'Show', 'post-type-spotlight' ) }
-			help={ selected?.help }
-			value={ queryType }
-			options={ options.map( ( { value, label } ) => ( {
-				value,
-				label,
-			} ) ) }
-			onChange={ ( nextQueryType ) => {
-				setAttributes( {
-					query: {
-						...query,
-						queryType: nextQueryType || DEFAULT_QUERY_TYPE,
-					},
-				} );
-			} }
-		/>
+		<>
+			{ /*
+			 * Only once there is a choice to make. A type this list was set to
+			 * and that has since been deleted is kept as an option, so the
+			 * select still says what the list is reading - and why it is empty.
+			 */ }
+			{ featureTypes.length > 1 && (
+				<SelectControl
+					__nextHasNoMarginBottom
+					label={ __( 'Feature type', 'post-type-spotlight' ) }
+					value={ featureType }
+					options={ [
+						...featureTypes.map( ( { slug, name } ) => ( {
+							value: slug,
+							label: name,
+						} ) ),
+						...( featureTypes.some(
+							( { slug } ) => slug === featureType
+						)
+							? []
+							: [
+									{
+										value: featureType,
+										label: __(
+											'(deleted type)',
+											'post-type-spotlight'
+										),
+									},
+								] ),
+					] }
+					onChange={ ( nextFeatureType ) => {
+						setAttributes( {
+							query: {
+								...query,
+								featureType:
+									nextFeatureType || DEFAULT_FEATURE_TYPE,
+							},
+						} );
+					} }
+				/>
+			) }
+			<SelectControl
+				__nextHasNoMarginBottom
+				label={ __( 'Show', 'post-type-spotlight' ) }
+				help={ selected?.help }
+				value={ queryType }
+				options={ options.map( ( { value, label } ) => ( {
+					value,
+					label,
+				} ) ) }
+				onChange={ ( nextQueryType ) => {
+					setAttributes( {
+						query: {
+							...query,
+							queryType: nextQueryType || DEFAULT_QUERY_TYPE,
+						},
+					} );
+				} }
+			/>
+		</>
 	);
 };
 

@@ -73,6 +73,14 @@ Call `post_type_spotlight_is_featured()`. It takes a post ID or post object, and
 	}
 ?>``
 
+= Can I have more than one kind of featured? =
+
+Yes. Featured is one feature type, and you can add others, such as Recommended or Hand Picked, as terms in the hidden `pts_feature_tax` taxonomy:
+
+``wp term create pts_feature_tax "Recommended"``
+
+Once a second type exists, the editor's Spotlight row lists every type, the classic editor and Quick Edit gain a checkbox per type, and the Featured List block and Featured Posts widget gain a Feature type setting. Check a single post with `post_type_spotlight_is_featured( $post, 'recommended' )`. A post with a type other than Featured receives `pts-{$slug}` and `pts-{$slug}-{$posttype}` classes.
+
 = How do I show featured posts with blocks? =
 
 Add the **Featured List** block. Search the inserter for "featured" or "spotlight" — it carries the Post Type Spotlight mark.
