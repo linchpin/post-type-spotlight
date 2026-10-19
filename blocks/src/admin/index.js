@@ -1,7 +1,7 @@
 import { registerPlugin } from '@wordpress/plugins';
 import { PluginPostStatusInfo } from '@wordpress/edit-post';
 import { useSelect, useDispatch } from '@wordpress/data';
-import { useEntityProp } from '@wordpress/core-data';
+import { store as coreStore } from '@wordpress/core-data';
 
 // Internal Components
 import PTSToggle from '../components/toggle';
@@ -27,23 +27,27 @@ const Admin = () => {
 		postTerms = [ postTerms ];
 	}
 
-	const [ postTypeSpotlightSettings ] = useEntityProp(
-		'root',
-		'site',
-		'pts_featured_post_types_settings'
+	/*
+	 * Whether this post type can be featured, read from the post type rather
+	 * than the plugin's setting. The setting lives in /wp/v2/settings, which
+	 * answers only users with `manage_options`, so for editors and authors it
+	 * never loaded and the row was never shown. The taxonomy is registered for
+	 * exactly the enabled post types, and the post type object listing it is
+	 * readable by anyone who can edit the post.
+	 */
+	const isEnabled = useSelect(
+		( select ) =>
+			!! select( coreStore )
+				.getPostType( postType )
+				?.taxonomies?.includes( 'pts_feature_tax' ),
+		[ postType ]
 	);
 
 	// Must stay above the early return below: hooks have to run in the same
 	// order on every render, and this one used to sit after it.
 	const { editEntityRecord } = useDispatch( 'core' );
 
-	// If the post type is not enabled in our writing settings
-	// then we can die early.
-	if (
-		! postTypeSpotlightSettings ||
-		( postTypeSpotlightSettings &&
-			postTypeSpotlightSettings.indexOf( postType ) === -1 )
-	) {
+	if ( ! isEnabled ) {
 		return null;
 	}
 
