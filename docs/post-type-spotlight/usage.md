@@ -48,6 +48,12 @@ How many it returns is the Query Loop's own **Items per page** setting, in the
 
 See [The Featured List block](featured-list-block.md) for the full walkthrough.
 
+## More than one kind of featured
+
+A site can add [feature types](feature-types.md) beside Featured, such as
+Recommended or Hand Picked, under **Settings → Post Type Spotlight**. Until it
+does, every screen above works exactly as described.
+
 ## The Featured Posts widget
 
 A **Featured Posts** widget is registered for themes that still use the classic

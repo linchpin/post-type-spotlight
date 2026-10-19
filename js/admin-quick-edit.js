@@ -1,9 +1,9 @@
 /**
- * Seed the Post Type Spotlight "Featured" checkbox when a Quick Edit row opens.
+ * Seed the Post Type Spotlight checkboxes when a Quick Edit row opens.
  *
  * WordPress' inline editor only copies core fields into the edit row, so the
- * current featured state is read from the hidden marker rendered in the
- * Featured column and applied to the checkbox by hand.
+ * current featured state and any other feature types are read from the hidden
+ * marker rendered in the Featured column and applied to the checkboxes by hand.
  *
  * @since 3.1.0
  */
@@ -29,14 +29,26 @@
 			return;
 		}
 
-		var $checkbox = $( '#edit-' + postId ).find( 'input[name="_pts_featured_post"]' );
+		var $editRow = $( '#edit-' + postId );
+		var $checkbox = $editRow.find( 'input[name="_pts_featured_post"]' );
 
 		if ( ! $checkbox.length ) {
 			return;
 		}
 
-		var featured = $( '#post-' + postId ).find( '.pts-featured-state' ).data( 'ptsFeatured' );
+		var $state = $( '#post-' + postId ).find( '.pts-featured-state' );
 
-		$checkbox.prop( 'checked', 1 === parseInt( featured, 10 ) );
+		$checkbox.prop( 'checked', 1 === parseInt( $state.data( 'ptsFeatured' ), 10 ) );
+
+		// jQuery parses the JSON array in data-pts-feature-types for us.
+		var featureTypes = $state.data( 'ptsFeatureTypes' );
+
+		if ( ! Array.isArray( featureTypes ) ) {
+			featureTypes = [];
+		}
+
+		$editRow.find( 'input[name="_pts_feature_types[]"]' ).each( function() {
+			this.checked = -1 !== featureTypes.indexOf( this.value );
+		} );
 	};
 } )( jQuery );

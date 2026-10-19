@@ -292,6 +292,15 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			?>
 			<p id="<?php echo esc_attr( self::SETTINGS_ANCHOR ); ?>" style="scroll-margin-top: 64px;">
 				<?php esc_html_e( 'Select which post types can be featured.', 'post-type-spotlight' ); ?>
+				<?php if ( current_user_can( 'manage_options' ) ) : ?>
+					<?php
+					printf(
+						/* translators: %s: URL of the Post Type Spotlight admin screen. */
+						wp_kses( __( 'Add more kinds of featured, such as Recommended, under <a href="%s">Post Type Spotlight</a>.', 'post-type-spotlight' ), array( 'a' => array( 'href' => array() ) ) ),
+						esc_url( Post_Type_Spotlight_Admin_Page::url() )
+					);
+					?>
+				<?php endif; ?>
 			</p>
 			<?php
 		}
@@ -627,7 +636,37 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 					?></span>&nbsp
 					<input type="checkbox" name="_pts_featured_post" id="_pts_featured_post" <?php checked( post_type_spotlight_is_featured( $post ) ); ?> />
 			</div>
+			<?php foreach ( $this->get_additional_feature_types() as $feature_type ) : ?>
+				<div class="misc-pub-section lp-featured-post lp-feature-type">
+					<label for="_pts_feature_type_<?php echo esc_attr( $feature_type->slug ); ?>"><?php echo esc_html( $feature_type->name ); ?>:</label>&nbsp;
+					<input type="checkbox" name="_pts_feature_types[]" id="_pts_feature_type_<?php echo esc_attr( $feature_type->slug ); ?>" value="<?php echo esc_attr( $feature_type->slug ); ?>" <?php checked( post_type_spotlight_is_featured( $post, $feature_type->slug ) ); ?> />
+				</div>
+			<?php endforeach; ?>
+			<input type="hidden" name="_pts_feature_types_submitted" value="1" />
 			<?php
+		}
+
+		/**
+		 * Feature types other than `featured`.
+		 *
+		 * `featured` keeps the checkbox, column star and view it has always had,
+		 * so each screen renders it exactly as before and adds controls for these
+		 * alongside it. On a site that has never created a second type this is
+		 * empty, and nothing on screen changes.
+		 *
+		 * @since 3.2.0
+		 *
+		 * @return WP_Term[]
+		 */
+		public function get_additional_feature_types() {
+			return array_values(
+				array_filter(
+					post_type_spotlight_get_feature_types(),
+					static function ( $feature_type ) {
+						return 'featured' !== $feature_type->slug;
+					}
+				)
+			);
 		}
 
 		/**
@@ -666,8 +705,29 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 						echo '<span class="dashicons dashicons-star-filled"></span>';
 					}
 
-					// Read by js/admin-quick-edit.js to seed the Quick Edit checkbox.
-					printf( '<span class="pts-featured-state hidden" data-pts-featured="%d"></span>', $featured ? 1 : 0 );
+					$terms      = get_the_terms( $post_id, 'pts_feature_tax' );
+					$additional = array();
+
+					foreach ( is_array( $terms ) ? $terms : array() as $term ) {
+						if ( 'featured' !== $term->slug ) {
+							$additional[ $term->slug ] = $term->name;
+						}
+					}
+
+					if ( $additional ) {
+						printf(
+							'%s<span class="pts-feature-types">%s</span>',
+							$featured ? ' ' : '',
+							esc_html( implode( ', ', $additional ) )
+						);
+					}
+
+					// Read by js/admin-quick-edit.js to seed the Quick Edit checkboxes.
+					printf(
+						'<span class="pts-featured-state hidden" data-pts-featured="%d" data-pts-feature-types="%s"></span>',
+						$featured ? 1 : 0,
+						esc_attr( wp_json_encode( array_keys( $additional ) ) )
+					);
 					break;
 			}
 		}
@@ -710,6 +770,13 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 							?>
 						</span>
 					</label>
+					<?php foreach ( $this->get_additional_feature_types() as $feature_type ) : ?>
+						<label class="alignleft lp-featured-post lp-feature-type">
+							<input type="checkbox" name="_pts_feature_types[]" value="<?php echo esc_attr( $feature_type->slug ); ?>" />
+							<span class="checkbox-title"><?php echo esc_html( $feature_type->name ); ?></span>
+						</label>
+					<?php endforeach; ?>
+					<input type="hidden" name="_pts_feature_types_submitted" value="1" />
 				</div>
 			</fieldset>
 			<?php
@@ -750,6 +817,7 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			}
 
 			$this->set_post_featured( $post_id, ! empty( $_POST['_pts_featured_post'] ) );
+			$this->save_additional_feature_types( $post_id );
 		}
 
 		/**
@@ -765,25 +833,56 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 		public function set_post_featured( $post_id, $featured ) {
 			delete_post_meta( $post_id, '_pts_featured_post' );
 
-			if ( $featured ) {
-				wp_set_object_terms( $post_id, array( 'featured' ), 'pts_feature_tax', true );
+			$this->set_post_feature_type( $post_id, 'featured', $featured );
+		}
+
+		/**
+		 * Add or remove one feature type on a post, leaving the others untouched.
+		 *
+		 * @since 3.2.0
+		 *
+		 * @param mixed  $post_id      The post ID.
+		 * @param string $feature_type Slug of the feature type.
+		 * @param bool   $enabled      Whether the post should carry it.
+		 * @return void
+		 */
+		public function set_post_feature_type( $post_id, $feature_type, $enabled ) {
+			if ( $enabled ) {
+				wp_set_object_terms( $post_id, array( $feature_type ), 'pts_feature_tax', true );
 				return;
 			}
 
-			$current_terms = wp_get_object_terms( $post_id, 'pts_feature_tax', array( 'fields' => 'slugs' ) );
+			wp_remove_object_terms( $post_id, $feature_type, 'pts_feature_tax' );
+		}
 
-			if ( is_wp_error( $current_terms ) ) {
+		/**
+		 * Save the checkboxes for feature types other than `featured`.
+		 *
+		 * Acts only when the form carried the marker field the classic editor and
+		 * Quick Edit print beside those checkboxes. An unticked checkbox posts
+		 * nothing, so without the marker a form that only knows about `featured`
+		 * would read as every other type being switched off.
+		 *
+		 * Callers verify the nonce before calling this.
+		 *
+		 * @since 3.2.0
+		 *
+		 * @param mixed $post_id The post being saved.
+		 * @return void
+		 */
+		private function save_additional_feature_types( $post_id ) {
+			// phpcs:disable WordPress.Security.NonceVerification.Missing, Linchpin.Security.NonceVerification.Missing
+			if ( empty( $_POST['_pts_feature_types_submitted'] ) ) {
 				return;
 			}
 
-			if ( ( $key = array_search( 'featured', $current_terms, true ) ) !== false ) { // phpcs:ignore WordPress.CodeAnalysis.AssignmentInCondition.Found
-				unset( $current_terms[ $key ] );
-			}
+			$submitted = isset( $_POST['_pts_feature_types'] )
+				? array_map( 'sanitize_title', (array) wp_unslash( $_POST['_pts_feature_types'] ) )
+				: array();
+			// phpcs:enable WordPress.Security.NonceVerification.Missing, Linchpin.Security.NonceVerification.Missing
 
-			if ( empty( $current_terms ) ) {
-				wp_set_object_terms( $post_id, null, 'pts_feature_tax', false );
-			} else {
-				wp_set_object_terms( $post_id, array_values( $current_terms ), 'pts_feature_tax', false );
+			foreach ( $this->get_additional_feature_types() as $feature_type ) {
+				$this->set_post_feature_type( $post_id, $feature_type->slug, in_array( $feature_type->slug, $submitted, true ) );
 			}
 		}
 
@@ -822,66 +921,83 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 		}
 
 		/**
-		 * views_addition function.
+		 * Add a view per feature type to the list table's views row.
+		 *
+		 * `featured` keeps its `featured` key and its "Featured" label, so the
+		 * row reads exactly as it did on a site with no other types.
 		 *
 		 * @access public
 		 * @param  mixed $views
 		 * @return mixed
 		 */
 		public function views_addition( $views ) {
-			$featured = new WP_Query(
-				array(
-					'post_type'      => get_post_type(),
-					'posts_per_page' => 1,
-					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Featured state is stored as a term so that it can be queried this way.
-					'tax_query'      => array(
-						array(
-							'taxonomy' => 'pts_feature_tax',
-							'field'    => 'slug',
-							'terms'    => array( 'featured' ),
-						),
-					),
-				)
-			);
-
-			if ( $featured->have_posts() ) {
-				$count = $featured->found_posts;
-			} else {
-				$count = 0;
-			}
-
 			/*
-			 * `taxonomy` + `term`, not `pts_feature_tax=featured`.
-			 *
-			 * The taxonomy is registered with 'query_var' => false, so
-			 * edit.php never read the shorter form and this link quietly
-			 * listed every post instead of the featured ones. The pair below
-			 * is what wp_edit_posts_query() actually honours.
+			 * The screen, not get_post_type(). get_post_type() reads the first
+			 * post in the list, so on an empty list it returned false and the
+			 * view counted and linked to posts whatever screen it was on.
 			 */
-			$url = add_query_arg(
-				array(
-					'post_type' => get_post_type(),
-					'taxonomy'  => 'pts_feature_tax',
-					'term'      => 'featured',
-				),
-				admin_url( 'edit.php' )
-			);
-
-			$link = '<a href="' . esc_url( $url ) . '"';
+			$screen    = get_current_screen();
+			$post_type = $screen && $screen->post_type ? $screen->post_type : get_post_type();
 
 			// Read-only check on an admin list table filter, to mark the current view. No state changes.
 			// phpcs:disable WordPress.Security.NonceVerification.Recommended, Linchpin.Security.NonceVerification.Recommended
-			$is_current = ( isset( $_GET['taxonomy'] ) && 'pts_feature_tax' === $_GET['taxonomy'] )
-				|| ( isset( $_GET['pts_feature_tax'] ) && 'featured' === $_GET['pts_feature_tax'] );
+			$current = '';
+
+			if ( isset( $_GET['taxonomy'], $_GET['term'] ) && 'pts_feature_tax' === $_GET['taxonomy'] ) {
+				$current = sanitize_title( wp_unslash( $_GET['term'] ) );
+			} elseif ( isset( $_GET['pts_feature_tax'] ) ) {
+				$current = sanitize_title( wp_unslash( $_GET['pts_feature_tax'] ) );
+			}
 			// phpcs:enable WordPress.Security.NonceVerification.Recommended, Linchpin.Security.NonceVerification.Recommended
 
-			if ( $is_current ) {
-				$link .= ' class="current"';
+			foreach ( post_type_spotlight_get_feature_types() as $feature_type ) {
+				$count = new WP_Query(
+					array(
+						'post_type'      => $post_type,
+						'posts_per_page' => 1,
+						'fields'         => 'ids',
+						// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Featured state is stored as a term so that it can be queried this way.
+						'tax_query'      => array(
+							array(
+								'taxonomy' => 'pts_feature_tax',
+								'field'    => 'slug',
+								'terms'    => array( $feature_type->slug ),
+							),
+						),
+					)
+				);
+
+				/*
+				 * `taxonomy` + `term`, not `pts_feature_tax=featured`.
+				 *
+				 * The taxonomy is registered with 'query_var' => false, so
+				 * edit.php never read the shorter form and this link quietly
+				 * listed every post instead of the featured ones. The pair below
+				 * is what wp_edit_posts_query() actually honours.
+				 */
+				$url = add_query_arg(
+					array(
+						'post_type' => $post_type,
+						'taxonomy'  => 'pts_feature_tax',
+						'term'      => $feature_type->slug,
+					),
+					admin_url( 'edit.php' )
+				);
+
+				$is_featured = 'featured' === $feature_type->slug;
+
+				$link = sprintf(
+					'<a href="%1$s"%2$s>%3$s</a> <span class="count">(%4$s)</span>',
+					esc_url( $url ),
+					$current === $feature_type->slug ? ' class="current"' : '',
+					$is_featured ? esc_html__( 'Featured', 'post-type-spotlight' ) : esc_html( $feature_type->name ),
+					absint( $count->found_posts )
+				);
+
+				$views[ $is_featured ? 'featured' : 'pts-' . $feature_type->slug ] = $link;
 			}
 
-			$link .= '>' . esc_html__( 'Featured', 'post-type-spotlight' ) . '</a> <span class="count">(' . absint( $count ) . ')</span>';
-
-			return array_merge( $views, array( 'featured' => $link ) );
+			return $views;
 		}
 
 		/**
@@ -908,6 +1024,7 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 
 			if ( $nonce && wp_verify_nonce( $nonce, '_pts_featured_post_nonce' ) ) {
 				$this->set_post_featured( $post_id, ! empty( $_POST['_pts_featured_post'] ) );
+				$this->save_additional_feature_types( $post_id );
 			}
 		}
 
@@ -924,6 +1041,20 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 			if ( post_type_spotlight_is_featured( $post_id ) ) {
 				$classes[] = 'featured';
 				$classes[] = 'featured-' . get_post_type( $post_id );
+			}
+
+			/*
+			 * Other feature types are prefixed. Their slugs are whatever an admin
+			 * named them, and an unprefixed "sticky" or "post" would collide with
+			 * classes core and themes already style.
+			 */
+			$terms = get_the_terms( $post_id, 'pts_feature_tax' );
+
+			foreach ( is_array( $terms ) ? $terms : array() as $term ) {
+				if ( 'featured' !== $term->slug ) {
+					$classes[] = sanitize_html_class( 'pts-' . $term->slug );
+					$classes[] = sanitize_html_class( 'pts-' . $term->slug . '-' . get_post_type( $post_id ) );
+				}
 			}
 
 			return $classes;
@@ -949,6 +1080,17 @@ if ( ! class_exists( 'Post_Type_Spotlight' ) ) {
 				POST_TYPE_SPOTLIGHT_VERSION,
 				true
 			);
+
+			/*
+			 * Quick Edit floats its checkbox labels side by side, and core only
+			 * spaces the first label in a group. Once a site has feature types
+			 * besides `featured` their labels sit in a row, and without this each
+			 * label ran straight into the next checkbox. Inline for the same
+			 * reason as the block editor's few rules: they do not warrant a file.
+			 */
+			wp_register_style( 'post-type-spotlight-quick-edit', false, array(), POST_TYPE_SPOTLIGHT_VERSION );
+			wp_enqueue_style( 'post-type-spotlight-quick-edit' );
+			wp_add_inline_style( 'post-type-spotlight-quick-edit', '.inline-edit-row fieldset label.lp-featured-post{margin-right:.5em}' );
 		}
 	}
 }

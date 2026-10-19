@@ -73,6 +73,10 @@ $featured = new WP_Query(
 
 Swap `'operator' => 'NOT IN'` into that clause to exclude featured posts instead. For a single post, `post_type_spotlight_is_featured( $post )`, which reads the current post in the loop when given none.
 
+### More than one kind of featured
+
+Featured is one **feature type**. Add others — Recommended, Hand Picked — under **Settings → Post Type Spotlight** (or as terms in `pts_feature_tax`), and every screen gains a control per type: the editor's Spotlight row becomes a checklist, the Featured List block and widget gain a **Feature type** setting, and `post_type_spotlight_is_featured( $post, 'recommended' )` checks one. Until a second type exists nothing changes. Full guide: [Feature types](docs/post-type-spotlight/feature-types.md).
+
 ### The Featured List block
 
 A **Featured List** variation of the core Query Loop block ships with the plugin. Search the inserter for **featured** or **spotlight** to find it.
@@ -95,7 +99,7 @@ npm install
 npm run build
 ```
 
-`npm run build` compiles `blocks/src` into `blocks/build`, which is committed because the plugin loads it at runtime. Use `npm run start` to watch.
+`npm run build` compiles `blocks/src` into `blocks/build` and `admin/src` into `admin/build`; both are committed because the plugin loads them at runtime. Use `npm run start` (blocks) or `npm run start:admin` (the admin screen) to watch.
 
 ### Quality checks
 

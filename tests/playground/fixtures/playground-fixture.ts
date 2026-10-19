@@ -49,7 +49,15 @@ export const test = base.extend< PlaygroundFixtures & PlaygroundOptions >( {
 
 			await use( server );
 
-			await server.server.close();
+			/*
+			 * The disposer, not `server.server.close()`. Closing the HTTP
+			 * server left every PHP worker thread and the instance's temp copy
+			 * of WordPress alive, so each test leaked a whole Playground. Past
+			 * about thirty tests that ran a hosted runner out of memory and
+			 * GitHub killed the job mid-suite as "The runner has received a
+			 * shutdown signal", with no failing test to show for it.
+			 */
+			await server[ Symbol.asyncDispose ]();
 		},
 		/*
 		 * Generous because the first boot of a run downloads WordPress and the

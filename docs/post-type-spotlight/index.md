@@ -12,6 +12,9 @@ A featured post:
 - is assigned the hidden `pts_feature_tax` taxonomy term `featured`, which makes
   it queryable with a standard `tax_query`.
 
+A site can add more [feature types](feature-types.md) beside Featured — such as
+Recommended or Hand Picked — and mark a post with any of them.
+
 ## Why not sticky posts?
 
 WordPress' built-in sticky functionality only applies to the core `post` post
@@ -24,5 +27,6 @@ is an indexed taxonomy lookup rather than a meta query.
 - [Installation](installation.md)
 - [Usage](usage.md)
 - [The Featured List block](featured-list-block.md)
+- [Feature types](feature-types.md)
 - [Querying featured posts](querying.md)
 - [Development](development.md)

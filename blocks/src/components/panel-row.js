@@ -4,6 +4,7 @@ import {
 	// eslint-disable-next-line @wordpress/no-unsafe-wp-apis
 	__experimentalHStack as HStack,
 } from '@wordpress/components';
+import { forwardRef } from '@wordpress/element';
 
 /**
  * A row in the editor Summary panel, shaped exactly like the ones core renders.
@@ -20,18 +21,22 @@ import {
  * the core rows for free. Custom CSS here would be a second set of measurements
  * to keep in step with core's.
  *
+ * Forwards its ref to the row, as core's does, so a popover opened from the
+ * row can be anchored to the whole row rather than to the button inside it.
+ *
  * @param {Object}          props
  * @param {string}          props.label    Text for the label column.
  * @param {React.ReactNode} props.children Content for the control column.
+ * @param {Object}          ref            Ref to the row element.
  * @return {React.ReactElement} The row.
  */
-const PanelRow = ( { label, children } ) => (
-	<HStack className="editor-post-panel__row">
+const PanelRow = forwardRef( ( { label, children }, ref ) => (
+	<HStack className="editor-post-panel__row" ref={ ref }>
 		{ label && (
 			<div className="editor-post-panel__row-label">{ label }</div>
 		) }
 		<div className="editor-post-panel__row-control">{ children }</div>
 	</HStack>
-);
+) );
 
 export default PanelRow;

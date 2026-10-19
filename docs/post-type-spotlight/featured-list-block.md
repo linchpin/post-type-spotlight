@@ -33,6 +33,11 @@ Open the block settings sidebar. Below the Query Loop's own panels there is a
 
 **Only featured** is the default.
 
+On a site with more than one [feature type](feature-types.md), a **Feature type**
+setting appears above **Show**, and the three settings apply to whichever type
+it names. A Featured List made before the site had other types keeps reading
+Featured.
+
 ### Choosing between them
 
 - **Only featured** is the one you want for a "Editor's picks" strip or a

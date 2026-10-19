@@ -57,6 +57,9 @@ post when given neither, the same way `is_sticky()` does. It is a wrapper for
 `has_term( 'featured', 'pts_feature_tax', $post )`, so it returns `false` for a
 missing post and on a site where no post type has been enabled yet.
 
+Pass a [feature type](feature-types.md)'s slug as the second argument to ask
+about that type instead: `post_type_spotlight_is_featured( $post_id, 'recommended' )`.
+
 Guard the call in a theme, so deactivating the plugin does not take the theme
 down with it:
 

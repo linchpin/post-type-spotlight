@@ -30,6 +30,18 @@ export const QUERY_TYPE_EXCLUDE_FEATURED = 'featured-exclude';
 export const DEFAULT_QUERY_TYPE = QUERY_TYPE_FEATURED_ONLY;
 
 /**
+ * Which feature type a Featured List reads when it names none.
+ *
+ * Every Featured List saved before feature types existed has no `featureType`,
+ * and `featured` is what it was listing all along. Like `queryType`, it rides
+ * inside the block's `query` attribute so it reaches both the editor preview
+ * and the front end.
+ *
+ * Mirrors `DEFAULT_FEATURE_TYPE` in class-post-type-spotlight-block-editor.php.
+ */
+export const DEFAULT_FEATURE_TYPE = 'featured';
+
+/**
  * Every query type the Spotlight control offers.
  *
  * `queryType` rides inside the block's `query` attribute rather than beside it.
