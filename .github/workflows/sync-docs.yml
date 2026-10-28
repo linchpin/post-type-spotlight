@@ -14,8 +14,11 @@ name: Sync docs to WordPress
 #   3. Set status: publish once the content and hierarchy look right.
 #   4. Only then add the push trigger commented out at the bottom.
 #
-# Both actions are pinned to immutable commit SHAs. Do not replace them with
-# floating tags - this job is exposed to a WordPress token.
+# actions/checkout is pinned to an immutable commit SHA: it is third party, and
+# this job is exposed to a WordPress token. linchpin/docspress is not pinned —
+# it is our own fork, in our own organisation, behind branch protection, so a
+# SHA pin defends against nothing here while guaranteeing we miss its fixes.
+# See its README for how the major tag moves.
 
 on:
   workflow_dispatch:
@@ -47,9 +50,10 @@ jobs:
       # actions/checkout v7
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
-      # linchpin/docspress feature/managed-path-scope - adds managed-path,
-      # which scopes deletion to this repository's own branch of the tree.
-      - uses: linchpin/docspress@3260df1c7deceb4da867bdba7967be4b807e4025
+      # v2 moves forward as fixes land; a breaking change becomes v3. It carries
+      # managed-path, which scopes deletion to this repository's own branch of
+      # the tree.
+      - uses: linchpin/docspress@v2
         with:
           mode: publish
 
